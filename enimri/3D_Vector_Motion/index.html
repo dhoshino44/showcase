@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Vector Motion Simulation</title>
+<style>
+:root{
+  --bg:#0f172a; --panel:#111827; --card:#1f2937; --text:#f8fafc;
+  --muted:#94a3b8; --border:#334155; --accent:#2563eb; --accent2:#1d4ed8;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#0b1220,#111827);color:var(--text)}
+.app{max-width:1500px;margin:0 auto;padding:18px}
+.card{background:rgba(31,41,55,.94);border:1px solid var(--border);border-radius:14px;padding:14px}
+.top-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+label{font-size:14px}
+input[type=text],input[type=number]{width:100%;margin-top:6px;background:#0f172a;color:var(--text);border:1px solid var(--border);border-radius:9px;padding:10px;font-size:16px}
+button{border:1px solid var(--border);background:#172033;color:var(--text);border-radius:9px;padding:9px 13px;cursor:pointer;font-size:14px}
+button.primary{background:var(--accent);border-color:var(--accent)}
+button:hover{filter:brightness(1.1)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.main{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,.8fr);gap:14px;margin-top:14px}
+.graph-card{background:rgba(15,23,42,.96);border:1px solid var(--border);border-radius:14px;padding:12px;min-width:0}
+.graph-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.small{font-size:12px;color:var(--muted)}
+canvas{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:12px;background:radial-gradient(circle at 28% 18%,rgba(255,255,255,.14),rgba(255,255,255,.03) 38%,rgba(0,0,0,.08) 100%)}
+.side{display:flex;flex-direction:column;gap:10px;min-width:0}
+.section-title{font-weight:700;margin-bottom:6px}
+.readout{font-size:14px;line-height:1.5}
+.formula{background:#0f172a;border:1px solid var(--border);border-radius:8px;padding:9px;text-align:center}
+.big{text-align:center;font-size:22px;font-weight:700;margin-top:7px}
+.range{width:100%}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
+.under-graph{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media(max-width:700px){.under-graph{grid-template-columns:1fr}}
+.msg{font-size:12px;color:#cbd5e1}
+@media(max-width:900px){
+  .main{grid-template-columns:1fr}
+  .top-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app" id="sim">
+  <div class="card">
+    <div class="top-grid">
+      <label>x(t) [m]<input id="sx" type="text" value="t^3"></label>
+      <label>y(t) [m]<input id="sy" type="text" value="t^2+6"></label>
+      <label>z(t) [m]<input id="sz" type="text" value="t^1.5"></label>
+    </div>
+    <div class="controls">
+      <button id="supdate" class="primary">Update trajectory</button>
+      <button id="sexample">Restore example</button>
+      <span id="smsg" class="msg"></span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="graph-card">
+      <div class="graph-head">
+        <div>
+          <div class="section-title">3D trajectory</div>
+          <div class="small">x, y, z in meters • XY grid plane at z = 0 • Drag to rotate • Mouse wheel to zoom</div>
+        </div>
+        <div class="controls" style="margin-top:0">
+          <button id="splay" class="primary">Play</button>
+          <button id="szin">Zoom +</button>
+          <button id="szout">Zoom −</button>
+          <button id="sreset">Reset view</button>
+        </div>
+      </div>
+      <canvas id="scanvas" width="1000" height="700"></canvas>
+      <div class="legend">
+        <span>Blue: trajectory</span>
+        <span>Green: velocity</span>
+        <span>Red: acceleration</span><span>Grid: XY plane (z = 0)</span>
+      </div>
+      <div class="under-graph">
+        <div class="card">
+          <div class="section-title">Angle between v and a</div>
+          <div class="formula">θ<sub>va</sub> = cos<sup>−1</sup>[(v · a)/(|v||a|)]</div>
+          <div id="sva" class="big">—</div>
+        </div>
+        <div class="card">
+          <div class="section-title">Arc length [m]</div>
+          <div class="formula">s(t) = ∫₀ᵗ |v(τ)| dτ</div>
+          <div id="sarc" class="big">0.0000 m</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <label>Maximum time [s]
+          <input id="stmax" type="number" min=".2" max="100" step=".1" value="5">
+        </label>
+        <label style="display:block;margin-top:10px">Time t = <b id="stlab">0.00 s</b></label>
+        <input id="stime" class="range" type="range" min="0" max="5" step=".01" value="0">
+      </div>
+
+      <div class="card readout">
+        <div class="section-title">Vectors as functions of time</div>
+        <div class="formula" style="text-align:left; line-height:1.7">
+          <div><b>r(t)</b> = <span id="srt">⟨t³, t² + 6, t³ᐟ²⟩ m</span></div>
+          <div><b>v(t)</b> = <span id="svt">⟨3t², 2t, (3/2)t¹ᐟ²⟩ m/s</span></div>
+          <div><b>a(t)</b> = <span id="sat">⟨6t, 2, (3/4)t⁻¹ᐟ²⟩ m/s²</span></div>
+        </div>
+        <div class="small" style="margin-top:7px">These are the exact symbolic vectors for the built-in example.</div>
+      </div>
+
+      <div class="card readout">
+        <div class="section-title">Position r [m]</div>
+        <div id="srvec"></div>
+        <div>|r| = <span id="srmag"></span> m</div>
+        <div>α (+x) = <span id="srax"></span></div>
+        <div>β (+y) = <span id="sray"></span></div>
+        <div>γ (+z) = <span id="sraz"></span></div>
+
+        <div class="section-title" style="margin-top:12px">Velocity v [m/s]</div>
+        <div id="svvec"></div>
+        <div>|v| = <span id="svmag"></span> m/s</div>
+        <div>α (+x) = <span id="svax"></span></div>
+        <div>β (+y) = <span id="svay"></span></div>
+        <div>γ (+z) = <span id="svaz"></span></div>
+
+        <div class="section-title" style="margin-top:12px">Acceleration a [m/s²]</div>
+        <div id="savec"></div>
+        <div>|a| = <span id="samag"></span> m/s²</div>
+        <div>α (+x) = <span id="saax"></span></div>
+        <div>β (+y) = <span id="saay"></span></div>
+        <div>γ (+z) = <span id="saaz"></span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+const root=document.getElementById('sim');
+const $=id=>document.getElementById(id);
+const cv=$('scanvas'),c=cv.getContext('2d'),X=$('sx'),Y=$('sy'),Z=$('sz'),sl=$('stime'),tm=$('stmax');
+let F=[],pts=[],yaw=-.68,pitch=.4,zoom=1,drag=false,lx=0,ly=0,playing=false,last=performance.now();
+
+function make(s){
+  s=s.trim();
+  if(!s) throw Error('Empty expression');
+  if(!/^[0-9a-zA-Z+\-*/^().\s]+$/.test(s)) throw Error('Unsupported symbol');
+  s=s.replace(/\^/g,'**')
+     .replace(/\bln\b/g,'Math.log').replace(/\blog\b/g,'Math.log')
+     .replace(/\bsin\b/g,'Math.sin').replace(/\bcos\b/g,'Math.cos')
+     .replace(/\btan\b/g,'Math.tan').replace(/\bsqrt\b/g,'Math.sqrt')
+     .replace(/\babs\b/g,'Math.abs').replace(/\bexp\b/g,'Math.exp')
+     .replace(/\bpi\b/gi,'Math.PI');
+  const f=Function('t','"use strict";return ('+s+')');
+  return t=>{const v=f(t);if(!Number.isFinite(v))throw Error('Non-finite value');return v}
+}
+const p=t=>F.map(f=>f(t));
+const M=v=>Math.hypot(...v);
+const clamp=x=>Math.max(-1,Math.min(1,x));
+const deg=x=>x*180/Math.PI;
+const fmt=x=>Math.abs(x)<1e-8?'0':x.toFixed(3);
+
+function der(t){
+  let T=+sl.max,h=Math.max(1e-4,T/6000),P=p(t),v,a;
+  if(t>=h && t<=T-h){
+    let L=p(t-h),H=p(t+h);
+    v=P.map((_,i)=>(H[i]-L[i])/(2*h));
+    a=P.map((x,i)=>(H[i]-2*x+L[i])/(h*h));
+  } else if(t<h){
+    let P1=p(Math.min(T,t+h)),P2=p(Math.min(T,t+2*h));
+    v=P.map((x,i)=>(P1[i]-x)/h);
+    a=P.map((x,i)=>(P2[i]-2*P1[i]+x)/(h*h));
+  } else {
+    let P1=p(Math.max(0,t-h)),P2=p(Math.max(0,t-2*h));
+    v=P.map((x,i)=>(x-P1[i])/h);
+    a=P.map((x,i)=>(x-2*P1[i]+P2[i])/(h*h));
+  }
+  return {p:P,v,a};
+}
+function dirs(v){
+  let m=M(v);
+  return m<1e-9?[null,null,null]:v.map(q=>deg(Math.acos(clamp(q/m))));
+}
+function va(v,a){
+  let den=M(v)*M(a);
+  if(den<1e-9)return null;
+  let dot=v.reduce((s,q,i)=>s+q*a[i],0);
+  return deg(Math.acos(clamp(dot/den)));
+}
+function arc(t){
+  if(t<=0)return 0;
+  let n=240;if(n%2)n++;
+  let h=t/n,sum=0;
+  for(let i=0;i<=n;i++){
+    let ti=i*h,w=(i===0||i===n)?1:(i%2?4:2);
+    sum+=w*M(der(ti).v);
+  }
+  return h*sum/3;
+}
+function rot(q){
+  let[x,y,z]=q,cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(pitch),sx=Math.sin(pitch);
+  let u=cy*x+sy*z,w=-sy*x+cy*z;
+  return[u,cx*y-sx*w];
+}
+function bounds(){
+  let A=pts.map(rot),xs=A.map(q=>q[0]),ys=A.map(q=>q[1]);
+  let m=Math.max(10,...pts.flat().map(q=>Math.abs(q)));
+  let corners=[[-m,-m,0],[m,-m,0],[m,m,0],[-m,m,0]].map(rot);
+  xs.push(...corners.map(q=>q[0])); ys.push(...corners.map(q=>q[1]));
+  let mnx=Math.min(...xs),mxx=Math.max(...xs),mny=Math.min(...ys),mxy=Math.max(...ys);
+  let w=Math.max(1,mxx-mnx),h=Math.max(1,mxy-mny);
+  return{cx:(mnx+mxx)/2,cy:(mny+mxy)/2,s:.72*Math.min(cv.width/w,cv.height/h)*zoom,m};
+}
+function pr(q,b){
+  q=rot(q);
+  return[cv.width/2+(q[0]-b.cx)*b.s,cv.height/2-(q[1]-b.cy)*b.s];
+}
+function line3(a,e,b,col,w=1){
+  a=pr(a,b); e=pr(e,b);
+  c.strokeStyle=col; c.lineWidth=w;
+  c.beginPath(); c.moveTo(...a); c.lineTo(...e); c.stroke();
+}
+function drawGrid(b){
+  let m=b.m;
+  let step=Math.pow(10,Math.floor(Math.log10(m/5)));
+  if(m/step<3)step/=2;
+  c.save();
+  for(let q=-m;q<=m+.001;q+=step){
+    line3([-m,q,0],[m,q,0],b,'rgba(130,150,180,.28)',1);
+    line3([q,-m,0],[q,m,0],b,'rgba(130,150,180,.28)',1);
+  }
+  line3([-m,0,0],[m,0,0],b,'#ef5350',2.2);
+  line3([0,-m,0],[0,m,0],b,'#43a047',2.2);
+  line3([0,0,-m*.7],[0,0,m*.7],b,'#42a5f5',2.2);
+  c.font='600 18px Arial';
+  [['x [m]',[m,0,0],'#ef5350'],['y [m]',[0,m,0],'#43a047'],['z [m]',[0,0,m*.7],'#42a5f5']].forEach(([n,pos,col])=>{
+    let Q=pr(pos,b); c.fillStyle=col; c.fillText(n,Q[0]+7,Q[1]-7);
+  });
+  c.restore();
+}
+function arrow(st,v,b,col,L){
+  let m=M(v);if(m<1e-9)return;
+  let e=st.map((x,i)=>x+v[i]/m*L),A=pr(st,b),E=pr(e,b),an=Math.atan2(E[1]-A[1],E[0]-A[0]);
+  c.save();c.shadowBlur=8;c.shadowColor=col;c.strokeStyle=col;c.fillStyle=col;c.lineWidth=3;
+  c.beginPath();c.moveTo(...A);c.lineTo(...E);c.stroke();
+  c.beginPath();c.moveTo(...E);
+  c.lineTo(E[0]-9*Math.cos(an-.5),E[1]-9*Math.sin(an-.5));
+  c.lineTo(E[0]-9*Math.cos(an+.5),E[1]-9*Math.sin(an+.5));
+  c.closePath();c.fill();c.restore();
+}
+function draw(){
+  if(!pts.length)return;
+  c.clearRect(0,0,cv.width,cv.height);
+  let b=bounds(),mx=b.m;
+  drawGrid(b);
+  c.save();c.shadowBlur=12;c.shadowColor='#708cff';c.strokeStyle='#4f7cff';c.lineWidth=3.6;c.beginPath();
+  pts.forEach((q,i)=>{let Q=pr(q,b);i?c.lineTo(...Q):c.moveTo(...Q)});c.stroke();c.restore();
+  try{
+    let d=der(+sl.value),P=pr(d.p,b);
+    c.fillStyle='#f29a45';c.beginPath();c.arc(P[0],P[1],7,0,Math.PI*2);c.fill();
+    arrow(d.p,d.v,b,'#2fa36f',mx*.10);
+    arrow(d.p,d.a,b,'#d25b68',mx*.085);
+  }catch(e){}
+}
+function setA(id,v){$(id).textContent=v==null?'undefined':v.toFixed(2)+'°'}
+function read(){
+  try{
+    let t=+sl.value,d=der(t),R=dirs(d.p),V=dirs(d.v),A=dirs(d.a),ang=va(d.v,d.a);
+    $('stlab').textContent=t.toFixed(2)+' s';
+    $('srvec').textContent='⟨'+d.p.map(fmt).join(', ')+'⟩ m';
+    $('svvec').textContent='⟨'+d.v.map(fmt).join(', ')+'⟩ m/s';
+    $('savec').textContent='⟨'+d.a.map(fmt).join(', ')+'⟩ m/s²';
+    $('srmag').textContent=fmt(M(d.p));$('svmag').textContent=fmt(M(d.v));$('samag').textContent=fmt(M(d.a));
+    [['srax',R[0]],['sray',R[1]],['sraz',R[2]],['svax',V[0]],['svay',V[1]],['svaz',V[2]],['saax',A[0]],['saay',A[1]],['saaz',A[2]]].forEach(q=>setA(q[0],q[1]));
+    $('sva').textContent=ang==null?'undefined':ang.toFixed(2)+'°';
+    $('sarc').textContent=arc(t).toFixed(4)+' m';
+    draw();
+  }catch(e){$('smsg').textContent='Cannot evaluate at this time.'}
+}
+
+function updateSymbolic(){
+  const xs=X.value.trim(), ys=Y.value.trim(), zs=Z.value.trim();
+  const pretty=s=>s
+    .replace(/\^3\b/g,'³').replace(/\^2\b/g,'²')
+    .replace(/\^1\.5\b/g,'³ᐟ²')
+    .replace(/\^0\.5\b/g,'¹ᐟ²')
+    .replace(/\^-0\.5\b/g,'⁻¹ᐟ²');
+  $('srt').textContent='⟨'+pretty(xs)+', '+pretty(ys)+', '+pretty(zs)+'⟩ m';
+
+  const norm=s=>s.replace(/\s+/g,'').toLowerCase();
+  const ex = norm(xs)==='t^3' && (norm(ys)==='t^2+6'||norm(ys)==='6+t^2') &&
+             (norm(zs)==='t^1.5'||norm(zs)==='t^(1.5)'||norm(zs)==='t^3/2');
+
+  if(ex){
+    $('svt').textContent='⟨3t², 2t, (3/2)t¹ᐟ²⟩ m/s';
+    $('sat').textContent='⟨6t, 2, (3/4)t⁻¹ᐟ²⟩ m/s²';
+  }else{
+    $('svt').textContent='⟨d('+xs+')/dt, d('+ys+')/dt, d('+zs+')/dt⟩ m/s';
+    $('sat').textContent='⟨d²('+xs+')/dt², d²('+ys+')/dt², d²('+zs+')/dt²⟩ m/s²';
+  }
+}
+function rebuild(){
+  try{
+    updateSymbolic();
+    F=[make(X.value),make(Y.value),make(Z.value)];
+    let T=Math.max(.2,Math.min(100,+tm.value||5));tm.value=T;sl.max=T;if(+sl.value>T)sl.value=T;
+    pts=[];
+    for(let i=0;i<=480;i++){let q=p(T*i/480);if(q.every(Number.isFinite))pts.push(q)}
+    if(pts.length<2)throw Error();
+    $('smsg').textContent='Trajectory updated.';
+    read();
+  }catch(e){$('smsg').textContent='Check the equations.'}
+}
+
+$('supdate').addEventListener('click',rebuild);
+$('sexample').addEventListener('click',()=>{X.value='t^3';Y.value='t^2+6';Z.value='t^1.5';tm.value=5;sl.value=0;zoom=1;rebuild()});
+sl.addEventListener('input',read);
+tm.addEventListener('change',rebuild);
+$('szin').addEventListener('click',()=>{zoom=Math.min(12,zoom*1.25);draw()});
+$('szout').addEventListener('click',()=>{zoom=Math.max(.15,zoom/1.25);draw()});
+$('sreset').addEventListener('click',()=>{zoom=1;yaw=-.68;pitch=.4;draw()});
+$('splay').addEventListener('click',()=>{
+  playing=!playing;$('splay').textContent=playing?'Pause':'Play';
+  if(playing&&+sl.value>=+sl.max)sl.value=0;
+  last=performance.now();
+});
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();zoom=e.deltaY<0?Math.min(12,zoom*1.12):Math.max(.15,zoom/1.12);draw()
+},{passive:false});
+cv.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;ly=e.clientY;cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  yaw+=(e.clientX-lx)*.009;
+  pitch=Math.max(-1.45,Math.min(1.45,pitch+(e.clientY-ly)*.009));
+  lx=e.clientX;ly=e.clientY;draw();
+});
+cv.addEventListener('pointerup',()=>drag=false);
+cv.addEventListener('pointercancel',()=>drag=false);
+
+function loop(now){
+  if(playing){
+    let t=+sl.value+Math.min(.05,(now-last)/1000)*.8;
+    if(t>=+sl.max){t=+sl.max;playing=false;$('splay').textContent='Play'}
+    sl.value=t;read();
+  }
+  last=now;requestAnimationFrame(loop);
+}
+rebuild();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

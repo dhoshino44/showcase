@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ideal Electric Dipole — No Damping</title>
+  <style>
+    :root{
+      --bg:#f7f7f8; --card:#ffffff; --text:#1f2937; --muted:#6b7280; --border:#d1d5db;
+      --accent:#2563eb; --accent-bg:#dbeafe; --neg:#ef4444; --pos:#3b82f6;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:980px;margin:0 auto;padding:24px}
+    h1{font-size:1.65rem;margin:0 0 18px}
+    .toolbar,.controls,.status{display:grid;gap:14px}
+    .toolbar{grid-template-columns:1fr auto;align-items:end}
+    .controls{grid-template-columns:repeat(3,1fr);margin:18px 0}
+    .status{grid-template-columns:repeat(3,1fr);margin-top:16px}
+    .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+    button{padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;font-size:15px}
+    button.active,button.primary{background:var(--accent-bg);border-color:var(--accent)}
+    label{font-size:14px}
+    input[type=range]{width:100%;margin-top:8px}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    svg{display:block;width:100%;height:auto}
+    .stat{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fff}
+    .stat small{display:block;color:var(--muted);margin-bottom:5px}
+    .explain{margin-top:14px;color:var(--muted);line-height:1.5}
+    .note{font-size:13px;color:var(--muted);margin-top:6px}
+    @media (max-width:700px){
+      .toolbar,.controls,.status{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Ideal Electric Dipole in Uniform vs. Nonuniform Fields — No Damping</h1>
+
+  <div class="toolbar">
+    <div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">Field type</div>
+      <div class="btnrow">
+        <button id="uniformBtn" class="active">Uniform field</button>
+        <button id="nonuniformBtn">Nonuniform field</button>
+      </div>
+    </div>
+    <div class="btnrow">
+      <button id="startBtn" class="primary">Start</button>
+      <button id="pauseBtn">Pause</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Initial angle: <strong><span id="angleVal">55</span>°</strong>
+      <input id="angle" type="range" min="5" max="175" value="55" step="1">
+    </label>
+    <label>Field strength: <strong><span id="fieldVal">1.0</span></strong>
+      <input id="field" type="range" min="0.3" max="2" value="1" step="0.1">
+    </label>
+    <label>Gradient: <strong><span id="gradientVal">0.80</span></strong>
+      <input id="gradient" type="range" min="0.2" max="1.6" value="0.8" step="0.1">
+      <div class="note">Used only for the nonuniform field.</div>
+    </label>
+  </div>
+
+  <div class="panel">
+    <svg id="simSvg" viewBox="0 0 760 360" aria-label="Simulation of an electric dipole in an electric field">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="#6b7280"></path>
+        </marker>
+      </defs>
+      <rect x="0" y="0" width="760" height="360" fill="#ffffff"></rect>
+      <g id="fieldLines"></g>
+      <g id="dipole">
+        <line id="rod" x1="315" y1="180" x2="445" y2="180" stroke="#1f2937" stroke-width="5" stroke-linecap="round"></line>
+        <circle id="neg" cx="315" cy="180" r="18" fill="#ef4444"></circle>
+        <circle id="pos" cx="445" cy="180" r="18" fill="#3b82f6"></circle>
+        <text id="negText" x="315" y="186" text-anchor="middle" font-size="22" font-weight="700" fill="white">−</text>
+        <text id="posText" x="445" y="186" text-anchor="middle" font-size="22" font-weight="700" fill="white">+</text>
+      </g>
+      <text id="modeText" x="20" y="30" fill="#1f2937" font-size="17" font-weight="600">Uniform field: torque, no net force</text>
+      <text x="20" y="335" fill="#6b7280" font-size="14">Field points to the right. Arrow length represents local field strength.</text>
+    </svg>
+  </div>
+
+  <div class="status">
+    <div class="stat"><small>Center of mass</small><strong id="comStatus">Stationary</strong></div>
+    <div class="stat"><small>Rotation</small><strong id="rotStatus">Torque toward alignment</strong></div>
+    <div class="stat"><small>Energy</small><strong id="energyStatus">Rotational kinetic energy</strong></div>
+  </div>
+
+  <div class="note" style="margin-top:14px"><strong>Ideal model:</strong> no rotational damping or friction. In a uniform field, mechanical energy is conserved and the dipole continues oscillating.</div><div id="explain" class="explain">
+    In a uniform field, the forces on +q and −q are equal and opposite, so the net force is zero.
+    Their separated lines of action produce a torque that rotates the dipole toward alignment.
+  </div>
+</div>
+
+<script>
+(() => {
+  const fieldLines = document.getElementById('fieldLines');
+  const rod = document.getElementById('rod');
+  const neg = document.getElementById('neg');
+  const pos = document.getElementById('pos');
+  const negText = document.getElementById('negText');
+  const posText = document.getElementById('posText');
+
+  const angleEl = document.getElementById('angle');
+  const fieldEl = document.getElementById('field');
+  const gradEl = document.getElementById('gradient');
+
+  const angleVal = document.getElementById('angleVal');
+  const fieldVal = document.getElementById('fieldVal');
+  const gradientVal = document.getElementById('gradientVal');
+
+  let mode = 'uniform';
+  let running = false;
+  let raf = null;
+  let x = 380, y = 180, theta = 55 * Math.PI / 180, omega = 0, vx = 0;
+  let last = 0;
+
+  function drawField(){
+    fieldLines.innerHTML = '';
+    const E0 = +fieldEl.value;
+    const g = +gradEl.value;
+
+    for(let j=0;j<6;j++){
+      const yy = 70 + j*45;
+      for(let i=0;i<7;i++){
+        const xx = 35 + i*105;
+        const local = mode === 'uniform' ? E0 : Math.max(0.25, E0*(0.45 + g*xx/760));
+        const len = 35 + 32*local;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1',xx);
+        line.setAttribute('y1',yy);
+        line.setAttribute('x2',Math.min(735,xx+len));
+        line.setAttribute('y2',yy);
+        line.setAttribute('stroke','#6b7280');
+        line.setAttribute('stroke-width','2');
+        line.setAttribute('opacity','0.7');
+        line.setAttribute('marker-end','url(#arrow)');
+        fieldLines.appendChild(line);
+      }
+    }
+  }
+
+  function render(){
+    const half = 65;
+    const c = Math.cos(theta), s = Math.sin(theta);
+    const x1 = x - half*c, y1 = y - half*s;
+    const x2 = x + half*c, y2 = y + half*s;
+
+    rod.setAttribute('x1',x1); rod.setAttribute('y1',y1);
+    rod.setAttribute('x2',x2); rod.setAttribute('y2',y2);
+
+    neg.setAttribute('cx',x1); neg.setAttribute('cy',y1);
+    pos.setAttribute('cx',x2); pos.setAttribute('cy',y2);
+
+    negText.setAttribute('x',x1); negText.setAttribute('y',y1+7);
+    posText.setAttribute('x',x2); posText.setAttribute('y',y2+7);
+  }
+
+  function updateText(){
+    angleVal.textContent = angleEl.value;
+    fieldVal.textContent = (+fieldEl.value).toFixed(1);
+    gradientVal.textContent = (+gradEl.value).toFixed(2);
+
+    document.getElementById('modeText').textContent =
+      mode === 'uniform' ? 'Uniform field: torque, no net force'
+                         : 'Nonuniform field: torque + net force';
+
+    document.getElementById('comStatus').textContent =
+      mode === 'uniform' ? 'Stationary' : 'Accelerates toward stronger field';
+
+    document.getElementById('rotStatus').textContent = 'Torque toward alignment';
+
+    document.getElementById('energyStatus').textContent =
+      mode === 'uniform' ? 'Rotational kinetic energy'
+                         : 'Translational + rotational kinetic energy';
+
+    document.getElementById('explain').textContent =
+      mode === 'uniform'
+      ? 'In a uniform field, the forces on +q and −q are equal and opposite, so the net force is zero. Their separated lines of action produce a torque that rotates the dipole toward alignment.'
+      : 'In a nonuniform field, the two charges feel different field magnitudes. The forces therefore do not cancel, giving a net force on the center of mass, while the dipole can also experience torque and rotate.';
+
+    gradEl.disabled = mode === 'uniform';
+    gradEl.style.opacity = mode === 'uniform' ? '0.45' : '1';
+  }
+
+  function reset(){
+    running = false;
+    if(raf) cancelAnimationFrame(raf);
+    raf = null;
+    last = 0;
+    x = 380; y = 180;
+    theta = (+angleEl.value) * Math.PI/180;
+    omega = 0; vx = 0;
+    render();
+    updateText();
+  }
+
+  function step(t){
+    if(!running) return;
+
+    const dt = Math.min(0.025, (t-last)/1000 || 0.016);
+    last = t;
+
+    const E = +fieldEl.value;
+    const g = +gradEl.value;
+
+    const alpha = -2.3*E*Math.sin(theta);
+    omega += alpha*dt;
+    theta += omega*dt;
+
+    if(mode === 'nonuniform'){
+      const align = Math.max(0.15, Math.cos(theta)*0.7 + 0.3);
+      const ax = 18*g*E*align;
+      vx += ax*dt;
+      x += vx*dt;
+
+      if(x > 665){ x = 665; vx *= -0.35; }
+      if(x < 95){ x = 95; vx = 0; }
+    }
+
+    render();
+    raf = requestAnimationFrame(step);
+  }
+
+  document.getElementById('uniformBtn').addEventListener('click', () => {
+    mode = 'uniform';
+    document.getElementById('uniformBtn').classList.add('active');
+    document.getElementById('nonuniformBtn').classList.remove('active');
+    drawField();
+    reset();
+  });
+
+  document.getElementById('nonuniformBtn').addEventListener('click', () => {
+    mode = 'nonuniform';
+    document.getElementById('nonuniformBtn').classList.add('active');
+    document.getElementById('uniformBtn').classList.remove('active');
+    drawField();
+    reset();
+  });
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    if(!running){
+      running = true;
+      last = 0;
+      raf = requestAnimationFrame(step);
+    }
+  });
+
+  document.getElementById('pauseBtn').addEventListener('click', () => {
+    running = false;
+    if(raf) cancelAnimationFrame(raf);
+    raf = null;
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', reset);
+
+  [angleEl,fieldEl,gradEl].forEach(el => {
+    el.addEventListener('input', () => {
+      drawField();
+      reset();
+    });
+  });
+
+  drawField();
+  reset();
+})();
+</script>
+</body>
+</html>
