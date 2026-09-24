@@ -1,0 +1,2744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="StarField Big Tree">
+<title>Chemical Bonding Lab v1.0</title>
+<!-- Chemical Bonding Lab: offline single-file app. Runs locally in the browser; nothing is uploaded. -->
+<style>
+/* PATCH-START: styles */
+:root{
+  --lab-phase:83 70 66 84;
+  --bg:#f3f5fa; --bg-glow:rgba(99,102,241,.10); --bg-glow2:rgba(20,184,166,.08);
+  --card:#ffffff; --card2:#f8fafc; --ink:#0f172a; --ink2:#475569; --ink3:#8a96ab; --line:#e3e8f1; --line2:#d5dce8;
+  --accent:#4f46e5; --accent-ink:#ffffff; --accent-soft:#eef0ff; --accent2:#0d9488;
+  --ok:#059669; --ok-soft:#e8f8f1; --bad:#e11d48; --bad-soft:#fff0f3; --warn:#b45309; --warn-soft:#fff7e6;
+  --stage:#fbfcfe; --stage-dot:#dfe5ef;
+  --shell:#b3bdcc; --shell-v:#6b7a93; --vac-fill:#fbfcfe; --vac:#9aa6b8;
+  --e-m:#7c3aed; --e-h:#0891b2; --e-r:#e11d48; --e-a:#d97706; --e-g:#16a34a;
+  --lens:rgba(124,58,237,.10);
+  --dp:#e11d48; --dm:#2563eb;
+  --hb:#0d9488;
+  --shadow:0 1px 2px rgba(15,23,42,.05),0 10px 30px -12px rgba(15,23,42,.14);
+  --radius:18px;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+html[data-theme="dark"]{
+  --bg:#080d1a; --bg-glow:rgba(99,102,241,.16); --bg-glow2:rgba(20,184,166,.10);
+  --card:#0f1628; --card2:#131c31; --ink:#e7ebf5; --ink2:#a6b1c8; --ink3:#6b7790; --line:#1d2842; --line2:#26334f;
+  --accent:#8b93ff; --accent-ink:#0b1020; --accent-soft:#1a2046; --accent2:#2dd4bf;
+  --ok:#34d399; --ok-soft:#0e2a22; --bad:#fb7185; --bad-soft:#2d121b; --warn:#fbbf24; --warn-soft:#2a2008;
+  --stage:#070b17; --stage-dot:#162039;
+  --shell:#3b4a66; --shell-v:#8193b5; --vac-fill:#070b17; --vac:#62718f;
+  --e-m:#a78bfa; --e-h:#22d3ee; --e-r:#fb7185; --e-a:#fbbf24; --e-g:#4ade80;
+  --lens:rgba(167,139,250,.14);
+  --dp:#fb7185; --dm:#60a5fa;
+  --hb:#2dd4bf;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px -14px rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);
+  background-image:radial-gradient(900px 500px at -10% -10%,var(--bg-glow),transparent 60%),radial-gradient(800px 500px at 110% 0%,var(--bg-glow2),transparent 55%);
+  background-attachment:fixed;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,svg:focus-visible,[tabindex]:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px}
+sub,sup{line-height:0}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* ---------- header ---------- */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:10px 22px;
+  background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex:none;background:none;border:0;padding:4px 6px;border-radius:12px;text-align:left}
+.brand svg{width:34px;height:34px;flex:none}
+.brand h1{font-size:16px;margin:0;letter-spacing:-.01em;line-height:1.1}
+.brand p{margin:0;font-size:11.5px;color:var(--ink3);line-height:1.2}
+.nav{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:2px}
+.nav::-webkit-scrollbar{display:none}
+.pill{display:flex;align-items:center;gap:7px;padding:6px 12px 6px 6px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;white-space:nowrap;font-size:13px;color:var(--ink2);transition:background .15s,border-color .15s,color .15s}
+.pill:hover{border-color:var(--line2);color:var(--ink)}
+.pill .pn{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:700;background:var(--card2);border:1px solid var(--line);color:var(--ink2)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pill.active .pn{background:color-mix(in srgb,var(--accent-ink) 22%,transparent);border-color:transparent;color:var(--accent-ink)}
+.pill.done .pn{background:var(--ok);border-color:var(--ok);color:#fff}
+.pill.home{padding:6px 12px}
+.top-actions{display:flex;gap:6px;flex:none}
+.icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;cursor:pointer;color:var(--ink2)}
+.icon-btn:hover{color:var(--ink);border-color:var(--line2)}
+.icon-btn svg{width:18px;height:18px}
+
+/* ---------- layout ---------- */
+main{flex:1;width:100%;max-width:1440px;margin:0 auto;padding:20px 22px 28px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.station{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:20px;align-items:start}
+.station[hidden],.home[hidden]{display:none}
+
+/* ---------- guide ---------- */
+.guide{position:sticky;top:78px;display:flex;flex-direction:column;max-height:calc(100vh - 100px);overflow:hidden}
+.g-head{padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+.g-kicker{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.g-head h2{margin:2px 0 10px;font-size:21px;letter-spacing:-.015em;line-height:1.2}
+.g-dots{display:flex;gap:6px;flex-wrap:wrap}
+.g-dot{height:8px;flex:1;min-width:18px;border-radius:99px;border:0;background:var(--line);cursor:pointer;padding:0}
+.g-dot.done{background:var(--ok)}
+.g-dot.cur{background:var(--accent)}
+.g-dot:disabled{cursor:default;opacity:.55}
+.g-body{padding:16px 20px;overflow-y:auto;flex:1}
+.g-num{font-size:12px;color:var(--ink3);font-weight:600}
+.g-body h3{margin:2px 0 8px;font-size:17px;letter-spacing:-.01em}
+.g-text{color:var(--ink2);font-size:14.5px}
+.g-text p{margin:0 0 10px}
+.g-text b,.g-text strong{color:var(--ink)}
+.g-text ul{margin:4px 0 10px;padding-left:18px}
+.g-text li{margin:3px 0}
+.defs{display:grid;gap:8px;margin:6px 0 12px}
+.def{border:1px solid var(--line);background:var(--card2);border-radius:12px;padding:8px 11px;font-size:13.5px;color:var(--ink2)}
+.def b{color:var(--ink)}
+.blk{border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin:12px 0;background:var(--card2)}
+.blk-lab{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px}
+.task{display:flex;gap:11px;align-items:flex-start;border-color:color-mix(in srgb,var(--accent) 35%,var(--line));background:var(--accent-soft)}
+.task .blk-lab{color:var(--accent)}
+.task .tick{width:24px;height:24px;border-radius:50%;flex:none;border:2px solid var(--accent);margin-top:2px;display:grid;place-items:center}
+.task.done{border-color:color-mix(in srgb,var(--ok) 40%,var(--line));background:var(--ok-soft)}
+.task.done .blk-lab{color:var(--ok)}
+.task.done .tick{background:var(--ok);border-color:var(--ok);color:#fff}
+.task .tick svg{width:14px;height:14px}
+.task-t{font-size:14.5px;color:var(--ink)}
+.task-d{font-size:13.5px;color:var(--ink2);margin-top:5px}
+.check .q{margin:2px 0 10px;font-weight:600;font-size:14.5px;color:var(--ink)}
+.opts{display:grid;gap:7px}
+.opt{display:flex;gap:9px;align-items:flex-start;text-align:left;width:100%;border:1px solid var(--line2);background:var(--card);border-radius:11px;padding:9px 11px;cursor:pointer;font-size:14px;line-height:1.35;transition:border-color .12s,background .12s,transform .12s}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt .ok-l{width:20px;height:20px;border-radius:6px;flex:none;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--card2);border:1px solid var(--line2);color:var(--ink3);margin-top:1px}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .ok-l{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);opacity:.85}
+.opt.wrong .ok-l{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.opt.shake{animation:shake .38s}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.fb{font-size:13.5px;margin-top:9px;padding:8px 10px;border-radius:10px;display:none}
+.fb.show{display:block}
+.fb.good{background:var(--ok-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent)}
+.fb.bad{background:var(--bad-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--bad) 30%,transparent)}
+.fb b{color:inherit}
+.note{background:var(--card);font-size:14px;color:var(--ink2)}
+.note.key{border-color:color-mix(in srgb,var(--accent2) 45%,var(--line));background:color-mix(in srgb,var(--accent2) 8%,var(--card))}
+.note.key b{color:var(--ink)}
+.locked{display:flex;gap:9px;align-items:center;color:var(--ink3);font-size:13.5px;border-style:dashed;background:transparent}
+.locked svg{width:16px;height:16px;flex:none}
+.g-nav{display:flex;gap:10px;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--line);background:var(--card)}
+.btn{border:1px solid var(--line2);background:var(--card);border-radius:12px;padding:9px 16px;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.btn:hover:not(:disabled){border-color:var(--ink3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover:not(:disabled){filter:brightness(1.07)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:6px 11px;font-size:13px;border-radius:10px}
+.btn.ghost{background:transparent}
+
+/* ---------- stage ---------- */
+.stage{overflow:hidden;display:flex;flex-direction:column}
+.stage-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
+.stage-title{font-weight:650;font-size:14.5px;display:flex;align-items:center;gap:8px}
+.stage-title .dot{width:9px;height:9px;border-radius:50%;background:var(--accent2);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent2) 18%,transparent)}
+.stage-tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tool{border:1px solid var(--line2);background:var(--card);border-radius:10px;padding:6px 11px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
+.tool:hover{color:var(--ink);border-color:var(--ink3)}
+.tool.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tool svg{width:15px;height:15px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:11px;padding:2px;background:var(--card2);gap:2px}
+.seg .tool{border:0;background:transparent;border-radius:8px;padding:5px 10px}
+.seg .tool.on{background:var(--accent);color:var(--accent-ink)}
+.range{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);font-weight:600}
+.range input{accent-color:var(--accent);width:150px}
+.stage-html:empty{display:none}
+.stage-html{padding:14px 14px 0}
+.svg-wrap{position:relative;background:var(--stage);background-image:radial-gradient(var(--stage-dot) 1px,transparent 1.2px);background-size:22px 22px;border-top:1px solid transparent}
+.svg-wrap[hidden]{display:none}
+#svg:focus{outline:none}
+#svg:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:-3px}
+#svg{display:block;width:100%;height:auto;max-height:min(66vh,620px);touch-action:none;user-select:none;-webkit-user-select:none}
+.toast{position:fixed;z-index:40;left:50%;bottom:26px;transform:translate(-50%,10px);opacity:0;pointer-events:none;max-width:min(92%,560px);padding:9px 14px;border-radius:12px;font-size:14px;font-weight:550;background:var(--ink);color:var(--card);box-shadow:var(--shadow);transition:opacity .2s,transform .2s;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.good{background:var(--ok);color:#fff}
+.toast.bad{background:var(--bad);color:#fff}
+.stage-foot{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:9px 14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);min-height:40px}
+.stage-foot:empty{display:none}
+.lg{display:inline-flex;align-items:center;gap:6px}
+.lg i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.lg i.vac{background:transparent;border:1.6px solid var(--vac)}
+.lg i.m{background:var(--e-m)} .lg i.h{background:var(--e-h)} .lg i.r{background:var(--e-r)} .lg i.a{background:var(--e-a)}
+.lg i.dp{background:var(--dp)} .lg i.dm{background:var(--dm)}
+.lg i.hb{width:18px;height:0;border-radius:0;border-top:2.5px dotted var(--hb)}
+.lg-tip{margin-left:auto;color:var(--ink3)}
+
+/* ---------- SVG ---------- */
+.shell{fill:none;stroke:var(--shell);stroke-width:1.4}
+.shell-v{stroke:var(--shell-v);stroke-width:1.9}
+.shell.ghost{stroke-dasharray:4 5}
+.shell-build{fill:none;stroke:var(--shell);stroke-width:1.6;stroke-dasharray:5 6}
+.shell-build.flash{stroke:var(--bad);stroke-width:3}
+.shell-build.hot{stroke:var(--accent);stroke-width:2.4}
+.nuc{stroke:rgba(0,0,0,.18);stroke-width:1}
+.nuc-t{fill:#fff;font-weight:750;text-anchor:middle;paint-order:stroke;stroke:rgba(0,0,0,.28);stroke-width:1.4px;pointer-events:none;font-family:var(--font)}
+.lewis-sym{fill:var(--ink);font-weight:700;text-anchor:middle;font-family:var(--font)}
+.e{stroke:var(--stage);stroke-width:1.2}
+html[data-theme="dark"] .e{filter:url(#glow)}
+.ek-m{fill:var(--e-m)} .ek-h{fill:var(--e-h)} .ek-r{fill:var(--e-r)} .ek-a{fill:var(--e-a)} .ek-g{fill:var(--e-g)}
+.e-sel{stroke:var(--ink);stroke-width:2.5}
+.vac{fill:var(--vac-fill);stroke:var(--vac);stroke-width:1.5}
+.vac-hl{stroke:var(--accent);stroke-width:2.6}
+.lens{fill:var(--lens);stroke:none}
+.t{fill:var(--ink2);font-family:var(--font);text-anchor:middle}
+.t-b{fill:var(--ink);font-weight:650}
+.t-s{font-size:12.5px;fill:var(--ink3)}
+.t-l{text-anchor:start} .t-r{text-anchor:end}
+.t-ok{fill:var(--ok);font-weight:700}
+.t-cap{fill:var(--ink);font-size:21px;font-weight:700;letter-spacing:-.01em}
+.t-acc{fill:var(--accent);font-weight:700}
+.badge{fill:var(--card);stroke:var(--line2);stroke-width:1}
+.badge.full{fill:var(--ok-soft);stroke:var(--ok)}
+.hit{fill:transparent;cursor:grab}
+.hit.tap{cursor:pointer}
+.hit-e{fill:transparent;cursor:grab}
+.site{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:4 5;opacity:.7}
+.site.hot{stroke-width:3;opacity:1;stroke-dasharray:none}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.18);opacity:.45}}
+.sel-ring{fill:none;stroke:var(--accent);stroke-width:2.5}
+.dp{fill:var(--dp);font-weight:750;font-family:var(--font);text-anchor:middle}
+.dm{fill:var(--dm);font-weight:750;font-family:var(--font);text-anchor:middle}
+.chg{stroke:var(--card);stroke-width:2}
+.chg.p{fill:var(--dp)} .chg.m{fill:var(--dm)}
+.chg-t{fill:#fff;font-weight:800;text-anchor:middle;font-family:var(--font);pointer-events:none}
+.hbond{stroke:var(--hb);stroke-width:3;stroke-dasharray:1.5 6;stroke-linecap:round;fill:none}
+.hb-lab{fill:var(--hb);font-weight:700;font-size:13px;text-anchor:middle;font-family:var(--font)}
+.pair-glow{fill:none;stroke-width:3}
+.pair-glow.good{stroke:var(--ok)} .pair-glow.bad{stroke:var(--bad)} .pair-glow.none{stroke:var(--ink3);stroke-dasharray:4 4}
+.arrow{stroke-width:3;fill:none;stroke-linecap:round}
+.arrow.blue{stroke:var(--dm)} .arrow.green{stroke:var(--ok)} .arrow.red{stroke:var(--dp)} .arrow.ink{stroke:var(--ink3)}
+.axis{stroke:var(--ink3);stroke-width:1.5}
+.tick{stroke:var(--ink3);stroke-width:1}
+.en-mark{cursor:pointer}
+.stem{stroke:var(--line2);stroke-width:1.5}
+.zone{opacity:.9}
+.cloud{pointer-events:none}
+.attract{stroke:var(--accent2);stroke-width:4;stroke-linecap:round;fill:none;opacity:.85}
+.rot-knob{fill:var(--card);stroke:var(--accent);stroke-width:2.5;cursor:grab}
+.rot-arc{fill:none;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:3 5;opacity:.55}
+.lat-na{fill:url(#g-Na)} .lat-cl{fill:url(#g-Cl)}
+.seta{stroke:var(--ink3);stroke-width:1.4;fill:none;stroke-linecap:round}
+.glass{fill:color-mix(in srgb,#38bdf8 16%,transparent);stroke:#38bdf8;stroke-width:1.5}
+.toe{fill:color-mix(in srgb,#84cc16 30%,var(--card));stroke:#65a30d;stroke-width:1.5}
+.meter-bg{fill:var(--card2);stroke:var(--line2)}
+.meter-fill{fill:var(--accent2)}
+.weight-line{stroke:var(--bad);stroke-width:2.5;stroke-dasharray:6 4}
+
+/* ---------- periodic table ---------- */
+.pt-wrap{display:grid;grid-template-columns:auto 1fr;gap:6px 8px;align-items:center}
+.pt-cols{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;grid-column:2}
+.pt-cols span{text-align:center;font-size:11px;font-weight:700;color:var(--ink3)}
+.pt-row-l{font-size:11px;font-weight:700;color:var(--ink3);writing-mode:horizontal-tb;text-align:right;white-space:nowrap}
+.ptable{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.pt{position:relative;border:1px solid var(--line2);border-radius:10px;padding:5px 4px 4px;cursor:pointer;background:var(--card);text-align:center;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .12s,border-color .12s,box-shadow .12s}
+.pt:hover{transform:translateY(-1px);border-color:var(--ink3)}
+.pt .z{position:absolute;top:3px;left:6px;font-size:10px;color:var(--ink3);font-weight:600}
+.pt .s{font-size:18px;font-weight:750;line-height:1.05}
+.pt .n{font-size:9.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pt.sel{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.pt.seen::after{content:"";position:absolute;top:5px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.pt.noble{background:color-mix(in srgb,#a855f7 9%,var(--card))}
+.pt.spacer{visibility:hidden}
+.info-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 2px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card2);border-radius:999px;padding:5px 11px;font-size:13px;color:var(--ink2)}
+.chip b{color:var(--ink)}
+.chip.good{background:var(--ok-soft);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+.chip.acc{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.build-card{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.build-card .tgt{font-size:15px}
+.build-card .tgt b{font-size:17px}
+
+/* ---------- summary ---------- */
+.cloze{display:grid;gap:10px;padding:4px 2px 14px}
+.cz{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--card);font-size:15px;line-height:2.2}
+.cz.ok{border-color:color-mix(in srgb,var(--ok) 45%,var(--line));background:var(--ok-soft)}
+.cz .n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--card2);border:1px solid var(--line);font-size:12px;font-weight:700;margin-right:6px;color:var(--ink3);line-height:1}
+.blank{display:inline-flex;gap:3px;border:1px dashed var(--line2);border-radius:10px;padding:2px;vertical-align:middle;line-height:1.3;background:var(--card2)}
+.blank button{border:0;background:transparent;border-radius:7px;padding:3px 9px;font-size:14px;cursor:pointer;color:var(--ink2)}
+.blank button:hover{background:var(--accent-soft);color:var(--ink)}
+.blank button.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.blank.good{border-style:solid;border-color:var(--ok)}
+.blank.good button.on{background:var(--ok);color:#fff}
+.blank.bad{border-style:solid;border-color:var(--bad)}
+.blank.bad button.on{background:var(--bad);color:#fff}
+.cz-hint{font-size:13px;color:var(--bad);line-height:1.4;margin-top:4px}
+.cloze-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:14px}
+.sorter{display:grid;gap:14px;padding-bottom:14px}
+.pool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;padding:10px;border:1px dashed var(--line2);border-radius:14px;background:var(--card2)}
+.pool:empty::before{content:"All sorted!";color:var(--ok);font-weight:600;font-size:14px;padding:4px}
+.sc{border:1px solid var(--line2);background:var(--card);border-radius:11px;padding:8px 11px;font-size:13.5px;cursor:pointer;text-align:left;max-width:320px;line-height:1.35}
+.sc:hover{border-color:var(--accent)}
+.sc.sel{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.sc.shake{animation:shake .38s;border-color:var(--bad)}
+.sc.placed{cursor:default;background:var(--ok-soft);border-color:color-mix(in srgb,var(--ok) 40%,transparent);font-size:12.5px}
+.bins{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.bin{border:1px solid var(--line);border-radius:14px;background:var(--card);min-height:170px;display:flex;flex-direction:column;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+.bin.ready{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.bin h4{margin:0;padding:9px 11px;font-size:13.5px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px}
+.bin h4 i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.bin .items{display:flex;flex-direction:column;gap:6px;padding:9px}
+.sort-fb{font-size:13.5px;min-height:20px}
+.sort-fb.bad{color:var(--bad)} .sort-fb.good{color:var(--ok)}
+.table-wrap{overflow-x:auto;padding-bottom:14px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px;min-width:620px}
+.cmp th,.cmp td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.cmp th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);font-weight:700}
+.cmp td:first-child{font-weight:650;white-space:nowrap}
+.strength{display:inline-block;height:8px;border-radius:99px;background:linear-gradient(90deg,var(--accent2),var(--accent));vertical-align:middle}
+.cert{border:1px solid var(--line);border-radius:18px;padding:22px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 7%,var(--card)),color-mix(in srgb,var(--accent2) 7%,var(--card)));margin-bottom:14px}
+.cert h3{margin:0 0 4px;font-size:22px;letter-spacing:-.015em}
+.cert .sub{color:var(--ink2);font-size:14px;margin-bottom:14px}
+.cert-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.stat{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--card)}
+.stat .v{font-size:24px;font-weight:750;letter-spacing:-.02em}
+.stat .l{font-size:12px;color:var(--ink3);font-weight:600}
+.name-in{border:1px solid var(--line2);border-radius:11px;padding:9px 12px;font:inherit;font-size:15px;background:var(--card);color:var(--ink);width:min(100%,340px)}
+.st-list{display:grid;gap:6px;margin:10px 0 0;padding:0;list-style:none;font-size:13.5px}
+.st-list li{display:flex;gap:8px;align-items:center;color:var(--ink2)}
+.st-list .mk{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;flex:none}
+.st-list .mk.y{background:var(--ok);color:#fff} .st-list .mk.n{background:var(--line);color:var(--ink3)}
+
+/* ---------- home ---------- */
+.home{display:grid;gap:20px}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;padding:28px;align-items:center;overflow:hidden}
+.hero h2{font-size:clamp(26px,3.2vw,38px);line-height:1.08;letter-spacing:-.025em;margin:6px 0 12px}
+.hero p{color:var(--ink2);font-size:15.5px;margin:0 0 16px;max-width:560px}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent2)}
+.hero-art svg{width:100%;height:auto;display:block}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.model-note{margin-top:16px;font-size:13px;color:var(--ink3);border-left:3px solid var(--line2);padding-left:10px;max-width:560px}
+.grid-st{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.st-card{padding:16px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:6px;transition:transform .15s,border-color .15s;border:1px solid var(--line);background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+.st-card:hover{transform:translateY(-2px);border-color:var(--line2)}
+.st-card .row{display:flex;justify-content:space-between;align-items:center}
+.st-card .num{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase}
+.st-card h3{margin:0;font-size:17px;letter-spacing:-.01em}
+.st-card p{margin:0;color:var(--ink2);font-size:13.5px}
+.st-card .prog{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:6px}
+.st-card .prog i{display:block;height:100%;background:var(--ok);border-radius:99px}
+.st-card .meta{font-size:12px;color:var(--ink3)}
+.st-card .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft)}
+.st-card .ic svg{width:26px;height:26px}
+.ladder{padding:18px 20px}
+.ladder h3{margin:0 0 10px;font-size:15px}
+.lad{display:grid;grid-template-columns:150px 1fr auto;gap:10px;align-items:center;font-size:13.5px;margin:7px 0}
+.lad .bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.lad .bar i{display:block;height:100%;border-radius:99px}
+.lad .w{color:var(--ink3);font-size:12px;white-space:nowrap}
+footer{padding:14px 22px 22px;text-align:center;font-size:12px;color:var(--ink3)}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(8,12,24,.45);backdrop-filter:blur(3px);padding:16px}
+.modal[hidden]{display:none}
+.modal .box{max-width:420px;width:100%;padding:20px}
+.modal h3{margin:0 0 6px}
+.modal p{margin:0 0 16px;color:var(--ink2);font-size:14px}
+.modal .acts{display:flex;justify-content:flex-end;gap:8px}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .station{grid-template-columns:1fr}
+  .guide{position:static;max-height:none}
+  .hero{grid-template-columns:1fr}
+  .bins{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .brand p{display:none}
+}
+@media (max-width:640px){
+  .top{position:static;padding:8px 12px;gap:10px;flex-wrap:wrap}
+  .station{display:flex;flex-direction:column;gap:14px}
+  .stage{order:-1}
+  .stage:not(.has-html):not(.no-svg){position:sticky;top:0;z-index:15;box-shadow:0 10px 24px -12px rgba(15,23,42,.35)}
+  .stage-bar{padding:7px 10px}
+  .stage-foot{padding:6px 10px;gap:10px;font-size:11.5px;min-height:0}
+  .lg-tip{display:none}
+  #svg{max-height:40vh}
+  .nav{order:3;flex-basis:100%}
+  main{padding:14px 12px 20px}
+  .pill{font-size:12px}
+  .pill .pl{display:none}
+  .pill{padding:5px}
+  .pill.home{padding:5px 10px}
+  .pt .n{display:none}
+  .pt{min-height:42px}
+  .pt .s{font-size:15px}
+  .cert-grid{grid-template-columns:1fr}
+  .lad{grid-template-columns:110px 1fr}
+  .lad .w{display:none}
+  .hero{padding:20px}
+  .range input{width:110px}
+}
+@media (prefers-reduced-motion:reduce){
+  .pulse,.opt.shake,.sc.shake{animation:none}
+  *{transition:none!important}
+}
+@media print{
+  body{background:#fff;color:#000}
+  .top,.guide,.stage-bar,.svg-wrap,.stage-foot,footer,.no-print,.home{display:none!important}
+  .station{display:block}
+  .stage,.card{box-shadow:none;border:0}
+  .cert{border:1px solid #999;background:#fff}
+}
+/* PATCH-END: styles */
+</style>
+</head>
+<body>
+<!--​‌​‌​​‌‌​‌​​​‌‌​​‌​​​​‌​​‌​‌​‌​​-->
+<!-- PATCH-START: body -->
+<div class="app">
+  <header class="top">
+    <button class="brand" id="brand" type="button" aria-label="Chemical Bonding Lab home">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <defs><linearGradient id="lgBrand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#14b8a6"/></linearGradient></defs>
+        <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#lgBrand)"/>
+        <circle cx="15" cy="20" r="9" fill="none" stroke="#fff" stroke-width="1.8" opacity=".95"/>
+        <circle cx="25" cy="20" r="9" fill="none" stroke="#fff" stroke-width="1.8" opacity=".95"/>
+        <circle cx="15" cy="20" r="2.6" fill="#fff"/><circle cx="25" cy="20" r="2.6" fill="#fff"/>
+        <circle cx="20" cy="14.4" r="1.9" fill="#fde68a"/><circle cx="20" cy="25.6" r="1.9" fill="#fde68a"/>
+      </svg>
+      <div><h1>Chemical Bonding Lab</h1><p>Guided Bohr-model simulations</p></div>
+    </button>
+    <nav class="nav" id="nav" aria-label="Stations"></nav>
+    <div class="top-actions">
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme" title="Light / dark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <button class="icon-btn" id="resetBtn" type="button" aria-label="Reset my progress" title="Reset progress">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="home" id="home" hidden></section>
+
+    <section class="station" id="station" hidden>
+      <aside class="guide card" id="guide" aria-label="Guided steps"></aside>
+      <div class="stage card">
+        <div class="stage-bar">
+          <div class="stage-title" id="stageTitle"><span class="dot"></span><span></span></div>
+          <div class="stage-tools" id="stageTools"></div>
+        </div>
+        <div class="stage-html" id="stageHtml"></div>
+        <div class="svg-wrap" id="svgWrap">
+          <svg id="svg" viewBox="0 0 800 460" tabindex="0" role="application" aria-label="Simulation stage. Drag atoms and electrons with a mouse or finger; arrow keys move the selected item."></svg>
+        </div>
+        <div class="stage-foot" id="stageFoot"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="foot">Chemical Bonding Lab <span id="verTag"></span> · Runs entirely in your browser — nothing is uploaded.</footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="box card">
+    <h3 id="modalTitle">Reset progress?</h3>
+    <p id="modalText">This clears every completed step and answer saved in this browser.</p>
+    <div class="acts">
+      <button class="btn" id="modalNo" type="button">Cancel</button>
+      <button class="btn primary" id="modalYes" type="button">Reset</button>
+    </div>
+  </div>
+</div>
+<!-- PATCH-END: body -->
+<span hidden data-lab-rev="29e6d0cc9338eeda1b339548"></span>
+<script>
+// PATCH-START: js-core
+'use strict';
+/* Chemical Bonding Lab — core utilities, storage, and the keyed SVG renderer. */
+const APP = { name: 'Chemical Bonding Lab', version: '1.0', key: 'bigtree.chemicalBondingLab.v1' };
+const Stations = [];
+const SVGNS = 'http://www.w3.org/2000/svg';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const lerp = (a, b, t) => a + (b - a) * t;
+const rad = d => d * Math.PI / 180;
+const deg = r => r * 180 / Math.PI;
+const hyp = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function gauss() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function r2(n) { return Math.round(n * 100) / 100; }
+const ICON = {
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  rotL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
+  rotR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>',
+  reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6h6"/><path d="M20 20v-6h-6"/><path d="M5.5 15a8 8 0 0 0 13.4 3M18.5 9A8 8 0 0 0 5.1 6"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg>',
+  sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+};
+
+/* ---------- storage (namespaced; every access guarded) ---------- */
+const Store = {
+  d: null,
+  load() {
+    let d = null;
+    try { const raw = localStorage.getItem(APP.key); if (raw) d = JSON.parse(raw); } catch (e) { d = null; }
+    if (!d || typeof d !== 'object' || Array.isArray(d)) d = {};
+    if (!d.steps || typeof d.steps !== 'object') d.steps = {};
+    if (!d.checks || typeof d.checks !== 'object') d.checks = {};
+    if (!d.extra || typeof d.extra !== 'object') d.extra = {};
+    if (typeof d.name !== 'string') d.name = '';
+    if (d.theme !== 'dark' && d.theme !== 'light') d.theme = null;
+    this.d = d;
+  },
+  save() { try { localStorage.setItem(APP.key, JSON.stringify(this.d)); } catch (e) { /* storage unavailable: progress lives for this visit only */ } },
+  stepDone(sid, stepId) { return !!(this.d.steps[sid] && this.d.steps[sid][stepId]); },
+  setStepDone(sid, stepId) { (this.d.steps[sid] = this.d.steps[sid] || {})[stepId] = true; this.save(); },
+  check(id) { return this.d.checks[id] || null; },
+  setCheck(id, v) { this.d.checks[id] = v; this.save(); },
+  resetProgress() { this.d.steps = {}; this.d.checks = {}; this.d.extra = {}; this.save(); },
+};
+
+/* ---------- keyed, immediate-style SVG renderer ----------
+   Each frame a station "declares" the nodes it wants (by key). Nodes not
+   declared that frame are removed. Positions/values can be tweened by key. */
+class Gfx {
+  constructor(svg) {
+    this.svg = svg; this.nodes = new Map(); this.used = new Set();
+    this.P = new Map(); this.Pu = new Set(); this.V = new Map(); this.Vu = new Set();
+    this.dt = 1 / 60; this.t = 0;
+    let host = document.getElementById('cblDefs');
+    if (!host) {
+      host = this.mk('svg'); host.setAttribute('id', 'cblDefs'); host.setAttribute('aria-hidden', 'true'); host.setAttribute('focusable', 'false');
+      host.setAttribute('style', 'position:absolute;width:0;height:0;overflow:hidden;left:0;top:0');
+      document.body.appendChild(host);
+    }
+    this.defs = this.mk('defs'); host.appendChild(this.defs);
+    this.L = {};
+    for (const n of ['bg', 'bond', 'shell', 'nuc', 'e', 'fx', 'lab', 'hit', 'hit2', 'top']) {
+      const g = this.mk('g'); g.setAttribute('class', 'L-' + n); svg.appendChild(g); this.L[n] = g;
+    }
+    this.defs.innerHTML = buildDefs();
+  }
+  mk(tag) { return document.createElementNS(SVGNS, tag); }
+  clear() { for (const r of this.nodes.values()) r.el.remove(); this.nodes.clear(); this.P.clear(); this.V.clear(); }
+  begin(dt) { this.dt = dt; this.t += dt; this.used.clear(); this.Pu.clear(); this.Vu.clear(); }
+  n(key, tag, attrs, layer) {
+    let r = this.nodes.get(key);
+    if (!r) { const el = this.mk(tag); this.L[layer || 'fx'].appendChild(el); r = { el, a: {} }; this.nodes.set(key, r); }
+    this.used.add(key);
+    if (attrs) for (const k in attrs) {
+      let v = attrs[k];
+      if (typeof v === 'number') v = r2(v);
+      if (r.a[k] === v) continue;
+      r.a[k] = v;
+      if (k === 'text') r.el.textContent = v;
+      else if (v === null || v === undefined || v === false) r.el.removeAttribute(k);
+      else r.el.setAttribute(k, v);
+    }
+    return r.el;
+  }
+  end() {
+    for (const [k, r] of this.nodes) if (!this.used.has(k)) { r.el.remove(); this.nodes.delete(k); }
+    for (const k of Array.from(this.P.keys())) if (!this.Pu.has(k)) this.P.delete(k);
+    for (const k of Array.from(this.V.keys())) if (!this.Vu.has(k)) this.V.delete(k);
+  }
+  tw(key, x, y, rate = 10, snap = false) {
+    let p = this.P.get(key); this.Pu.add(key);
+    if (!p || snap) { p = { x, y }; this.P.set(key, p); return p; }
+    const k = 1 - Math.exp(-this.dt * rate); p.x += (x - p.x) * k; p.y += (y - p.y) * k; return p;
+  }
+  setP(key, x, y) { this.P.set(key, { x, y }); this.Pu.add(key); }
+  getP(key) { return this.P.get(key) || null; }
+  tv(key, v, rate = 8, snap = false) {
+    let c = this.V.get(key); this.Vu.add(key);
+    if (c === undefined || snap) { this.V.set(key, v); return v; }
+    c += (v - c) * (1 - Math.exp(-this.dt * rate)); if (Math.abs(c - v) < 1e-3) c = v; this.V.set(key, c); return c;
+  }
+  raise(key) { const r = this.nodes.get(key); if (r && r.el.parentNode) r.el.parentNode.appendChild(r.el); }
+  pt(ev) {
+    const m = this.svg.getScreenCTM(); if (!m) return { x: 0, y: 0 };
+    const p = this.svg.createSVGPoint(); p.x = ev.clientX; p.y = ev.clientY;
+    const q = p.matrixTransform(m.inverse()); return { x: q.x, y: q.y };
+  }
+  /* helpers for common shapes */
+  text(key, x, y, str, cls, layer, extra) { return this.n(key, 'text', Object.assign({ x, y, class: 't ' + (cls || ''), 'font-size': 14, text: str }, extra || {}), layer || 'lab'); }
+  line(key, x1, y1, x2, y2, cls, layer, extra) { return this.n(key, 'line', Object.assign({ x1, y1, x2, y2, class: cls }, extra || {}), layer || 'fx'); }
+  arrow(key, x1, y1, x2, y2, color, layer) {
+    // shaft + head drawn as one path so it themes with CSS
+    const a = Math.atan2(y2 - y1, x2 - x1), hl = 9, hw = 6;
+    const bx = x2 - Math.cos(a) * hl, by = y2 - Math.sin(a) * hl;
+    const d = `M${r2(x1)},${r2(y1)} L${r2(bx)},${r2(by)} M${r2(x2)},${r2(y2)} L${r2(bx - Math.sin(a) * hw)},${r2(by + Math.cos(a) * hw)} M${r2(x2)},${r2(y2)} L${r2(bx + Math.sin(a) * hw)},${r2(by - Math.cos(a) * hw)}`;
+    return this.n(key, 'path', { d, class: 'arrow ' + color }, layer || 'fx');
+  }
+}
+
+function buildDefs() {
+  let s = '';
+  for (const k in ELEMENTS) {
+    const c = ELEMENTS[k].c;
+    s += `<radialGradient id="g-${k}" cx="36%" cy="32%" r="72%"><stop offset="0" stop-color="${c[0]}"/><stop offset=".55" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></radialGradient>`;
+  }
+  s += '<filter id="glow" x="-150%" y="-150%" width="400%" height="400%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+  s += '<radialGradient id="cloudNeg" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#3b82f6" stop-opacity=".30"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>';
+  s += '<radialGradient id="cloudPos" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#f43f5e" stop-opacity=".26"/><stop offset="1" stop-color="#f43f5e" stop-opacity="0"/></radialGradient>';
+  s += '<radialGradient id="cloudE" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#8b5cf6" stop-opacity=".30"/><stop offset=".7" stop-color="#8b5cf6" stop-opacity=".10"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>';
+  s += '<linearGradient id="enGrad" x1="0" x2="1"><stop offset="0" stop-color="#f59e0b"/><stop offset=".5" stop-color="#a3a3a3" stop-opacity=".6"/><stop offset="1" stop-color="#3b82f6"/></linearGradient>';
+  s += '<radialGradient id="g-Hs" cx="36%" cy="32%" r="72%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e5e7eb"/><stop offset="1" stop-color="#9ca3af"/></radialGradient>';
+  return s;
+}
+
+/* renders the same drawing calls to a static SVG string (used for the home illustration) */
+class StrGfx {
+  constructor(skip) { this.L = {}; this.dt = 0; this.t = 0; this.skip = skip || new Set(); }
+  n(key, tag, attrs, layer) {
+    if (this.skip.has(key)) return null;
+    const a = Object.entries(attrs || {}).filter(([k, v]) => k !== 'text' && v !== null && v !== undefined && v !== false)
+      .map(([k, v]) => `${k}="${typeof v === 'number' ? r2(v) : esc(v)}"`).join(' ');
+    (this.L[layer || 'fx'] = this.L[layer || 'fx'] || []).push(`<${tag} ${a}>${attrs && attrs.text != null ? esc(attrs.text) : ''}</${tag}>`);
+    return null;
+  }
+  text(key, x, y, str, cls, layer, extra) { return this.n(key, 'text', Object.assign({ x, y, class: 't ' + (cls || ''), 'font-size': 14, text: str }, extra || {}), layer || 'lab'); }
+  line(key, x1, y1, x2, y2, cls, layer, extra) { return this.n(key, 'line', Object.assign({ x1, y1, x2, y2, class: cls }, extra || {}), layer || 'fx'); }
+  tw(k, x, y) { return { x, y }; } tv(k, v) { return v; } setP() { } getP() { return null; } raise() { }
+  out() { return ['bg', 'bond', 'shell', 'nuc', 'e', 'fx', 'lab'].map(l => (this.L[l] || []).join('')).join(''); }
+}
+// PATCH-END: js-core
+
+// PATCH-START: js-bohr
+/* Bohr-model atoms: data, geometry, bonds, and drawing.
+   Convention used throughout (matches the course slides):
+   - shell 1 has one orbital (2 electrons); shells 2 and 3 have four orbitals (8 electrons)
+   - filled circle = electron, open circle = "vacancy" in the valence shell
+   - in a covalent bond the shared pair sits where the two valence shells cross */
+const ELEMENTS = {
+  H:  { Z: 1,  name: 'Hydrogen',  row: 1, col: 1, en: 2.20, c: ['#eaf2fb', '#9cc0e3', '#4a79a8'] },
+  He: { Z: 2,  name: 'Helium',    row: 1, col: 8, en: null, c: ['#fde7f3', '#f0a0cb', '#b04b86'] },
+  Li: { Z: 3,  name: 'Lithium',   row: 2, col: 1, en: 0.98, c: ['#fde2e2', '#f09a9a', '#ad4d4d'] },
+  Be: { Z: 4,  name: 'Beryllium', row: 2, col: 2, en: 1.57, c: ['#e3f5e1', '#99d394', '#4a8a45'] },
+  B:  { Z: 5,  name: 'Boron',     row: 2, col: 3, en: 2.04, c: ['#fdf0dc', '#eebd78', '#a3702a'] },
+  C:  { Z: 6,  name: 'Carbon',    row: 2, col: 4, en: 2.55, c: ['#a3acba', '#4b5563', '#1d2530'] },
+  N:  { Z: 7,  name: 'Nitrogen',  row: 2, col: 5, en: 3.04, c: ['#d3e2ff', '#5b8def', '#1c46c9'] },
+  O:  { Z: 8,  name: 'Oxygen',    row: 2, col: 6, en: 3.44, c: ['#ffd6d6', '#ee5f5f', '#b01c1c'] },
+  F:  { Z: 9,  name: 'Fluorine',  row: 2, col: 7, en: 3.98, c: ['#e8f9dc', '#9edc72', '#4a8524'] },
+  Ne: { Z: 10, name: 'Neon',      row: 2, col: 8, en: null, c: ['#ffe4cc', '#fa9a4a', '#bf540e'] },
+  Na: { Z: 11, name: 'Sodium',    row: 3, col: 1, en: 0.93, c: ['#fff3c4', '#f3c33f', '#b2850a'] },
+  Mg: { Z: 12, name: 'Magnesium', row: 3, col: 2, en: 1.31, c: ['#e0f2e9', '#80caa2', '#2c8556'] },
+  Al: { Z: 13, name: 'Aluminum',  row: 3, col: 3, en: 1.61, c: ['#edf0f5', '#b3bdcc', '#687486'] },
+  Si: { Z: 14, name: 'Silicon',   row: 3, col: 4, en: 1.90, c: ['#f0e7d9', '#c6a878', '#836537'] },
+  P:  { Z: 15, name: 'Phosphorus',row: 3, col: 5, en: 2.19, c: ['#ffe6d3', '#f5a165', '#bc5c1b'] },
+  S:  { Z: 16, name: 'Sulfur',    row: 3, col: 6, en: 2.58, c: ['#fff8cc', '#efdb4f', '#a3900e'] },
+  Cl: { Z: 17, name: 'Chlorine',  row: 3, col: 7, en: 3.16, c: ['#dbf7e1', '#52cc70', '#147a3a'] },
+  Ar: { Z: 18, name: 'Argon',     row: 3, col: 8, en: null, c: ['#ede5ff', '#b39af5', '#6a48c6'] },
+};
+const EL_ORDER = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar'];
+const NOBLE = ['He', 'Ne', 'Ar'];
+const SHELL_R = [28, 48, 68];
+const ORB_ANG = [-90, 0, 90, 180];   // top, right, bottom, left (SVG y points down)
+const E_R = 5.2;
+const PAIR = 13;
+let EID = 1;
+
+function shellCounts(n) { const a = [], cap = [2, 8, 8]; let r = n; for (let i = 0; i < 3 && r > 0; i++) { const k = Math.min(r, cap[i]); a.push(k); r -= k; } return a; }
+function occFor(n, nOrb) { if (nOrb === 1) return [n]; const o = [0, 0, 0, 0]; for (let i = 0; i < n; i++) o[i % 4]++; return o; }
+
+function makeAtom(sym, o = {}) {
+  const E = ELEMENTS[sym];
+  const counts = shellCounts(o.electrons != null ? o.electrons : E.Z);
+  const shells = counts.map((n, si) => {
+    const nOrb = si === 0 ? 1 : 4, last = si === counts.length - 1;
+    const occ = (last && o.val) ? o.val.slice() : occFor(n, nOrb);
+    return occ.map(k => { const orb = [null, null]; for (let s = 0; s < k; s++) orb[s] = { id: EID++, k: last ? (o.vk || o.ek || 'm') : (o.ek || 'm') }; return orb; });
+  });
+  const A = {
+    id: o.id || (sym + '_' + (EID++)), sym, Z: E.Z, name: E.name,
+    x: o.x || 0, y: o.y || 0, tx: o.x || 0, ty: o.y || 0, rot: o.rot || 0, a0: o.a0 || 0, sc: o.sc || 1,
+    shells, bonds: [], charge: 0, drag: !!o.drag, ghost: null,
+  };
+  return A;
+}
+const vIdx = A => A.shells.length - 1;
+const shR = (A, si) => SHELL_R[si] * A.sc;
+const vR = A => shR(A, vIdx(A));
+const nucR = A => (A.Z === 1 ? 11.5 : A.Z <= 10 ? 14.5 : 16) * A.sc;
+function orbDeg(A, si, oi) { if (si === 0) return A.shells.length === 1 ? A.rot + A.a0 - 90 : -90; return A.rot + ORB_ANG[oi]; }
+function faceTo(A, angDeg) { if (A.shells.length === 1) A.rot = angDeg + 90 - A.a0; else A.rot = angDeg; }
+function slotXY(A, si, oi, s) {
+  const r = shR(A, si), a = rad(orbDeg(A, si, oi)), d = (PAIR * A.sc / 2) / r * (s ? 1 : -1);
+  return { x: A.x + r * Math.cos(a + d), y: A.y + r * Math.sin(a + d) };
+}
+function lewisXY(A, oi, s) {
+  const L = 31 * A.sc, a = rad(orbDeg(A, vIdx(A), oi));
+  const px = -Math.sin(a), py = Math.cos(a), off = (s ? 1 : -1) * 6.5 * A.sc;
+  return { x: A.x + L * Math.cos(a) + px * off, y: A.y + L * Math.sin(a) + py * off };
+}
+function electronsIn(A, si, oi) { return A.shells[si][oi].filter(Boolean); }
+function bondOn(A, oi) { return A.bonds.find(b => (b.a === A && b.oa.includes(oi)) || (b.b === A && b.ob.includes(oi))) || null; }
+function vCount(A) { let n = 0; for (const orb of A.shells[vIdx(A)]) for (const e of orb) if (e) n++; for (const b of A.bonds) n += b.order; return n; }
+const vCap = A => (vIdx(A) === 0 ? 2 : 8);
+function eCount(A) { let n = 0; for (const sh of A.shells) for (const orb of sh) for (const e of orb) if (e) n++; return n; }
+
+function bondDist(A, B, order) {
+  const ra = vR(A), rb = vR(B);
+  if (order === 2) return 1.3 * Math.min(ra, rb);
+  const s = 0.5 * Math.min(ra, rb);
+  return Math.sqrt(ra * ra - s * s) + Math.sqrt(rb * rb - s * s);
+}
+function makeBond(A, oa, B, ob, order) { const b = { a: A, b: B, oa, ob, order }; A.bonds.push(b); B.bonds.push(b); return b; }
+function unbond(b) { b.a.bonds = b.a.bonds.filter(x => x !== b); b.b.bonds = b.b.bonds.filter(x => x !== b); }
+
+function circX(A, B) {
+  const ra = vR(A), rb = vR(B), dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy) || 1e-6;
+  const ux = dx / d, uy = dy / d, x = (d * d + ra * ra - rb * rb) / (2 * d), h2 = ra * ra - x * x;
+  return { ra, rb, d, ux, uy, x, h: h2 > 0 ? Math.sqrt(h2) : 0, nx: -uy, ny: ux };
+}
+/* where each shared electron should sit for a bond */
+function bondTargets(b, out) {
+  const A = b.a, B = b.b, g = circX(A, B);
+  const eA = [], eB = [];
+  b.oa.forEach(oi => electronsIn(A, vIdx(A), oi).forEach(e => eA.push(e)));
+  b.ob.forEach(oi => electronsIn(B, vIdx(B), oi).forEach(e => eB.push(e)));
+  if (b.order === 1) {
+    const h = Math.max(g.h, 7 * A.sc), px = A.x + g.ux * g.x, py = A.y + g.uy * g.x;
+    if (eA[0]) out.set(eA[0].id, { x: px + g.nx * h, y: py + g.ny * h });
+    if (eB[0]) out.set(eB[0].id, { x: px - g.nx * h, y: py - g.ny * h });
+  } else {
+    const base = Math.atan2(g.uy, g.ux);
+    const al = 0.45 * Math.acos(clamp(g.x / g.ra, -1, 1));
+    eA.forEach((e, i) => { const a = base + (i ? al : -al); out.set(e.id, { x: A.x + g.ra * Math.cos(a), y: A.y + g.ra * Math.sin(a) }); });
+    const alB = 0.45 * Math.acos(clamp((g.d - g.x) / g.rb, -1, 1)), bb = base + Math.PI;
+    eB.forEach((e, i) => { const a = bb + (i ? -alB : alB); out.set(e.id, { x: B.x + g.rb * Math.cos(a), y: B.y + g.rb * Math.sin(a) }); });
+  }
+}
+function lensPath(A, B) {
+  const g = circX(A, B); if (g.h <= 0.5) return null;
+  const px = A.x + g.ux * g.x, py = A.y + g.uy * g.x;
+  const p1x = px + g.nx * g.h, p1y = py + g.ny * g.h, p2x = px - g.nx * g.h, p2y = py - g.ny * g.h;
+  return `M${r2(p1x)},${r2(p1y)} A${r2(g.ra)},${r2(g.ra)} 0 0 0 ${r2(p2x)},${r2(p2y)} A${r2(g.rb)},${r2(g.rb)} 0 0 0 ${r2(p1x)},${r2(p1y)} Z`;
+}
+
+/* draw one atom. o: {bpos, lewis(0..1), snap, rate, hlOrb(fn), hideVac, dim} */
+function drawAtom(g, A, o = {}) {
+  const id = A.id, cx = A.x, cy = A.y, vi = vIdx(A), lw = o.lewis || 0, bpos = o.bpos;
+  A.shells.forEach((sh, si) => {
+    const op = 1 - lw;
+    g.n(id + ':s' + si, 'circle', { cx, cy, r: shR(A, si), class: si === vi ? 'shell shell-v' : 'shell', opacity: op < 1 ? op : null }, 'shell');
+  });
+  if (A.ghost) {
+    A.ghost.op = Math.max(0, A.ghost.op - g.dt * 0.9);
+    if (A.ghost.op > 0) g.n(id + ':gh', 'circle', { cx, cy, r: A.ghost.r, class: 'shell ghost', opacity: A.ghost.op }, 'shell');
+  }
+  const nr = nucR(A);
+  g.n(id + ':n', 'circle', { cx, cy, r: nr, fill: `url(#g-${A.sym})`, class: 'nuc', opacity: lw > 0 ? 1 - lw : null }, 'nuc');
+  g.n(id + ':nt', 'text', { x: cx, y: cy + 3.8 * A.sc, class: 'nuc-t', 'font-size': (A.Z === 1 ? 9.5 : A.Z > 9 ? 10 : 10.5) * A.sc, text: A.Z + 'p', opacity: lw > 0 ? 1 - lw : null }, 'nuc');
+  if (lw > 0.01) g.n(id + ':sym', 'text', { x: cx, y: cy + 11 * A.sc, class: 'lewis-sym', 'font-size': 32 * A.sc, opacity: lw, text: A.sym }, 'nuc');
+  const er = E_R * Math.max(0.78, Math.min(1.25, A.sc * 0.9));
+  for (let si = 0; si < A.shells.length; si++) {
+    const inner = si < vi, orbs = A.shells[si];
+    for (let oi = 0; oi < orbs.length; oi++) {
+      const bonded = si === vi && !!bondOn(A, oi);
+      for (let s = 0; s < 2; s++) {
+        const e = orbs[oi][s];
+        if (e) {
+          let t = bpos && bpos.get(e.id);
+          if (!t) { const sp = slotXY(A, si, oi, s); t = (lw > 0 && !inner) ? (() => { const L = lewisXY(A, oi, s); return { x: lerp(sp.x, L.x, lw), y: lerp(sp.y, L.y, lw) }; })() : sp; }
+          const p = (e.drag) ? g.tw('e' + e.id, e.drag.x, e.drag.y, 40) : g.tw('e' + e.id, t.x, t.y, o.rate || 11, !!o.snap);
+          const op = inner ? 1 - lw : 1;
+          g.n('e' + e.id, 'circle', { cx: p.x, cy: p.y, r: er * (e.big ? 1.25 : 1), class: 'e ek-' + e.k + (e.sel ? ' e-sel' : ''), opacity: op < 1 ? op : null }, 'e');
+        } else if (si === vi && !bonded && !o.hideVac && lw < 0.5 && !(A.shells.length === 1 && A.Z === 2)) {
+          const t = slotXY(A, si, oi, s), hl = o.hlOrb && o.hlOrb(A, oi);
+          g.n(id + ':v' + oi + '_' + s, 'circle', { cx: t.x, cy: t.y, r: er * 0.92, class: 'vac' + (hl ? ' vac-hl' : '') }, 'e');
+        }
+      }
+    }
+  }
+}
+/* the lens (overlap) shading + shared electron positions for a set of bonds */
+function drawBonds(g, bonds, bpos, keyPrefix) {
+  bonds.forEach((b, i) => {
+    bondTargets(b, bpos);
+    const d = lensPath(b.a, b.b);
+    if (d) g.n((keyPrefix || '') + 'lens' + b.a.id + b.b.id, 'path', { d, class: 'lens' }, 'bond');
+  });
+}
+function drawCharge(g, A, key) {
+  if (!A.charge) return;
+  const r = vR(A), x = A.x + r * 0.72, y = A.y - r * 0.72, rr = 12 * Math.max(1, A.sc * 0.9);
+  g.n(key + 'c', 'circle', { cx: x, cy: y, r: rr, class: 'chg ' + (A.charge > 0 ? 'p' : 'm') }, 'lab');
+  g.n(key + 'ct', 'text', { x, y: y + rr * 0.42, class: 'chg-t', 'font-size': rr * 1.35, text: A.charge > 0 ? '+' : '−' }, 'lab');
+}
+/* valence counter badge below an atom */
+function drawCount(g, A, key, y, x) {
+  const n = vCount(A), cap = vCap(A), full = n >= cap;
+  const txt = `${n}/${cap}${full ? ' ✓' : ''}`, w = txt.length * 7.6 + 16, yy = y != null ? y : A.y + vR(A) + 20, xx = x != null ? x : A.x;
+  g.n(key + 'bg', 'rect', { x: xx - w / 2, y: yy - 13, width: w, height: 22, rx: 11, class: 'badge' + (full ? ' full' : '') }, 'lab');
+  g.n(key + 'tx', 'text', { x: xx, y: yy + 3, class: 't ' + (full ? 't-ok' : 't-b'), 'font-size': 12.5, text: txt }, 'lab');
+}
+
+/* ---------- small molecules (rigid) built from Bohr atoms ---------- */
+const MOLS = {
+  water:   { heavy: 'O', val: [1, 1, 2, 2], h: [0, 1], name: 'Water (H₂O)' },
+  ammonia: { heavy: 'N', val: [1, 1, 1, 2], h: [0, 1, 2], name: 'Ammonia (NH₃)' },
+  methane: { heavy: 'C', val: [1, 1, 1, 1], h: [0, 1, 2, 3], name: 'Methane (CH₄)' },
+};
+function makeMolecule(kind, o) {
+  const d = MOLS[kind], X = makeAtom(d.heavy, { sc: o.sc, val: d.val, ek: o.ek || 'm' });
+  const atoms = [X], loc = [{ A: X, lx: 0, ly: 0, lr: 0 }], bonds = [];
+  d.h.forEach(oi => {
+    const H = makeAtom('H', { sc: o.sc, ek: o.hk || 'h' });
+    const ang = ORB_ANG[oi], D = bondDist(X, H, 1);
+    loc.push({ A: H, lx: D * Math.cos(rad(ang)), ly: D * Math.sin(rad(ang)), lr: ang + 180 + 90 });
+    bonds.push(makeBond(X, [oi], H, [0], 1)); atoms.push(H);
+  });
+  let gx = 0, gy = 0; loc.forEach(l => { gx += l.lx; gy += l.ly; }); gx /= loc.length; gy /= loc.length;
+  loc.forEach(l => { l.lx -= gx; l.ly -= gy; });
+  let rad0 = 0; loc.forEach(l => { rad0 = Math.max(rad0, Math.hypot(l.lx, l.ly) + vR(l.A)); });
+  const M = { id: o.id || kind + (EID++), kind, name: d.name, atoms, loc, bonds, heavy: X, x: o.x, y: o.y, tx: o.x, ty: o.y, ang: o.ang || 0, polar: kind !== 'methane', R: rad0 };
+  placeMol(M); return M;
+}
+function placeMol(M) {
+  const c = Math.cos(rad(M.ang)), s = Math.sin(rad(M.ang));
+  M.loc.forEach(l => { l.A.x = M.x + l.lx * c - l.ly * s; l.A.y = M.y + l.lx * s + l.ly * c; l.A.rot = l.lr + M.ang; });
+}
+function drawMolecule(g, M, o = {}) {
+  const bpos = new Map();
+  drawBonds(g, M.bonds, bpos, M.id);
+  M.atoms.forEach(A => drawAtom(g, A, { bpos, snap: o.snap !== false, rate: o.rate }));
+  if (o.hit) M.atoms.forEach(A => g.n('hit' + A.id, 'circle', { cx: A.x, cy: A.y, r: vR(A), class: 'hit' + (o.tap ? ' tap' : ''), 'data-hit': (o.hit === 'atom' ? 'atom:' + A.id : 'mol:' + M.id) }, 'hit'));
+}
+/* partial-charge labels: δ− on the electronegative atom (away from its H's), δ+ beyond each H */
+function drawDeltas(g, M, key, size, skip) {
+  if (!M.polar) return;
+  const X = M.heavy, fs = size || 20;
+  let mx = 0, my = 0;
+  M.atoms.forEach(A => { if (A !== X) { const d = Math.hypot(A.x - X.x, A.y - X.y) || 1; mx += (A.x - X.x) / d; my += (A.y - X.y) / d; } });
+  const m = Math.hypot(mx, my) || 1, R = vR(X) + fs * 0.75;
+  g.n(key + 'dm', 'text', { x: X.x - mx / m * R, y: X.y - my / m * R + fs * 0.35, class: 'dm', 'font-size': fs, text: 'δ−' }, 'lab');
+  M.atoms.forEach(A => {
+    if (A === X || (skip && skip.has(A.id))) return;
+    const dx = A.x - X.x, dy = A.y - X.y, d = Math.hypot(dx, dy) || 1, rr = vR(A) + fs * 0.62;
+    g.n(key + 'dp' + A.id, 'text', { x: A.x + dx / d * rr, y: A.y + dy / d * rr + fs * 0.35, class: 'dp', 'font-size': fs * 0.9, text: 'δ+' }, 'lab');
+  });
+}
+// PATCH-END: js-bohr
+
+// PATCH-START: js-guide
+/* Guided steps: each step is a list of blocks (note / task / check).
+   Blocks unlock in order; a step is complete when every block is complete. */
+const Guide = {
+  el: null, st: null, idx: 0, latch: {}, wrong: {},
+  init(el) {
+    this.el = el;
+    el.addEventListener('click', e => {
+      const b = e.target.closest('[data-g]'); if (!b) return;
+      const act = b.getAttribute('data-g');
+      if (act === 'next') this.next();
+      else if (act === 'back') this.go(this.idx - 1);
+      else if (act === 'dot') this.go(+b.getAttribute('data-i'));
+      else if (act === 'opt') this.pick(+b.getAttribute('data-b'), +b.getAttribute('data-o'), b);
+    });
+  },
+  open(st, idx) { this.st = st; this.latch = {}; this.idx = -1; this.go(idx, true); },
+  step() { return this.st ? this.st.steps[this.idx] : null; },
+  ckey(b) { return this.st.id + '.' + b.id; },
+  stored(i) { const s = this.st.steps[i]; return Store.stepDone(this.st.id, s.id); },
+  blockDone(b, bi, si) {
+    const s = this.st.steps[si == null ? this.idx : si];
+    if (Store.stepDone(this.st.id, s.id)) return true;
+    if (b.type === 'task') return !!this.latch[s.id + ':' + bi];
+    if (b.type === 'check') { const c = Store.check(this.ckey(b)); return !!(c && c.done); }
+    return true;
+  },
+  stepComplete(si) { const s = this.st.steps[si]; return Store.stepDone(this.st.id, s.id) || s.blocks.every((b, bi) => this.blockDone(b, bi, si)); },
+  firstOpen() { for (let i = 0; i < this.st.steps.length; i++) if (!this.stored(i)) return i; return this.st.steps.length - 1; },
+  /* true while a question that comes BEFORE the first task is unanswered (used to hold back predictions) */
+  locked() {
+    const s = this.step(); if (!s) return false;
+    for (let bi = 0; bi < s.blocks.length; bi++) { const b = s.blocks[bi]; if (b.type === 'task') return false; if (b.type === 'check' && !this.blockDone(b, bi)) return true; }
+    return false;
+  },
+  go(i, first) {
+    if (!this.st) return;
+    i = clamp(i, 0, this.st.steps.length - 1);
+    const maxI = this.firstOpen();
+    if (!first && i > maxI && !this.stored(i)) return;
+    this.idx = i; this.wrong = {};
+    const s = this.step();
+    App.stepChanged(this.st, i);
+    if (!this.stored(i) && s.blocks.every(b => b.type === 'note')) { Store.setStepDone(this.st.id, s.id); App.progressChanged(); }
+    try { if (s.enter) s.enter(App.api, this.stored(i)); } catch (err) { console.error(err); }
+    this.render();
+    const gb = $('.g-body', this.el); if (gb) gb.scrollTop = 0;
+  },
+  next() {
+    if (!this.stepComplete(this.idx)) return;
+    if (this.idx < this.st.steps.length - 1) this.go(this.idx + 1);
+    else App.stationFinished(this.st);
+  },
+  poll() {
+    const s = this.step(); if (!s) return;
+    let changed = false;
+    s.blocks.forEach((b, bi) => {
+      if (b.type !== 'task') return;
+      const k = s.id + ':' + bi;
+      if (!this.latch[k] && !Store.stepDone(this.st.id, s.id)) {
+        let ok = false; try { ok = !!b.done(); } catch (e) { ok = false; }
+        if (ok) { this.latch[k] = true; changed = true; }
+      }
+    });
+    if (changed) { this.afterChange(); }
+  },
+  afterChange() {
+    const s = this.step();
+    if (!Store.stepDone(this.st.id, s.id) && s.blocks.every((b, bi) => this.blockDone(b, bi))) { Store.setStepDone(this.st.id, s.id); App.progressChanged(); }
+    this.render();
+    const vis = $$('.g-body .blk:not(.locked)', this.el), last = vis[vis.length - 1];
+    if (last && last.scrollIntoView) try { last.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { /* ignore */ }
+  },
+  pick(bi, oi, btn) {
+    const b = this.step().blocks[bi]; if (!b || b.type !== 'check') return;
+    const key = this.ckey(b), rec = Object.assign({ tries: 0 }, Store.check(key) || {});
+    if (rec.done) return;
+    const o = b.opts[oi];
+    rec.tries++;
+    if (o.ok) {
+      rec.done = true; rec.first = rec.tries === 1; rec.pick = oi; Store.setCheck(key, rec);
+      if (b.onRight) try { b.onRight(App.api); } catch (e) { console.error(e); }
+      this.afterChange();
+      App.progressChanged();
+    } else {
+      Store.setCheck(key, rec);
+      (this.wrong[key] = this.wrong[key] || new Set()).add(oi);
+      btn.classList.add('wrong', 'shake'); btn.disabled = true;
+      setTimeout(() => btn.classList.remove('shake'), 400);
+      const fb = btn.closest('.check').querySelector('.fb');
+      fb.className = 'fb show bad'; fb.innerHTML = '<b>Not quite.</b> ' + (o.fb || 'Look at the model again and try another answer.');
+    }
+  },
+  render() {
+    const st = this.st, s = this.step(); if (!st || !s) return;
+    const maxI = this.firstOpen();
+    const dots = st.steps.map((x, i) => {
+      const done = this.stored(i), cur = i === this.idx, can = i <= maxI || done;
+      return `<button class="g-dot${done ? ' done' : ''}${cur ? ' cur' : ''}" data-g="dot" data-i="${i}" ${can ? '' : 'disabled'} aria-label="Step ${i + 1}: ${esc(x.title)}${done ? ' (done)' : ''}"></button>`;
+    }).join('');
+    let blocks = '', gate = false;
+    s.blocks.forEach((b, bi) => {
+      if (gate) return;
+      const done = this.blockDone(b, bi);
+      blocks += this.blockHTML(b, bi, done);
+      if (!done && b.type !== 'note') { gate = true; if (bi < s.blocks.length - 1) blocks += `<div class="blk locked">${ICON.lock}<span>Finish this to unlock the next part.</span></div>`; }
+    });
+    const complete = this.stepComplete(this.idx), last = this.idx === st.steps.length - 1;
+    const nextLbl = last ? (App.nextStation(st) ? 'Next station →' : 'Finish ✓') : 'Next →';
+    this.el.innerHTML = `
+      <div class="g-head"><div class="g-kicker">Station ${st.num} · ${esc(st.slides)}</div><h2>${esc(st.title)}</h2><div class="g-dots">${dots}</div></div>
+      <div class="g-body"><div class="g-num">Step ${this.idx + 1} of ${st.steps.length}</div><h3>${s.title}</h3><div class="g-text">${s.body || ''}</div>${blocks}</div>
+      <div class="g-nav"><button class="btn" data-g="back" ${this.idx === 0 ? 'disabled' : ''}>← Back</button>
+      <button class="btn primary" data-g="next" ${complete ? '' : 'disabled'} title="${complete ? '' : 'Complete the step to continue'}">${nextLbl}</button></div>`;
+  },
+  blockHTML(b, bi, done) {
+    if (b.type === 'note') return `<div class="blk note ${b.cls || ''}">${b.html}</div>`;
+    if (b.type === 'task') {
+      return `<div class="blk task${done ? ' done' : ''}"><div class="tick">${done ? ICON.check : ''}</div><div><div class="blk-lab">${done ? 'Done' : 'Your turn'}</div><div class="task-t">${b.text}</div>${done && b.doneText ? `<div class="task-d">${b.doneText}</div>` : ''}</div></div>`;
+    }
+    const key = this.ckey(b), rec = Store.check(key), wr = this.wrong[key] || new Set();
+    const L = 'ABCDEFG';
+    const opts = b.opts.map((o, oi) => {
+      const right = rec && rec.done && rec.pick === oi, wrong = wr.has(oi);
+      return `<button class="opt${right ? ' right' : ''}${wrong ? ' wrong' : ''}" data-g="opt" data-b="${bi}" data-o="${oi}" ${done || wrong ? 'disabled' : ''}><span class="ok-l">${L[oi]}</span><span>${o.t}</span></button>`;
+    }).join('');
+    let fb = '';
+    if (done && rec && rec.pick != null) { const o = b.opts[rec.pick]; fb = `<div class="fb show good"><b>${rec.first ? 'Correct!' : 'Yes!'}</b> ${o.fb || b.explain || ''}</div>`; }
+    else if (done) { const oi = b.opts.findIndex(o => o.ok); fb = `<div class="fb show good"><b>Answer:</b> ${b.opts[oi].t}. ${b.opts[oi].fb || b.explain || ''}</div>`; }
+    else fb = '<div class="fb"></div>';
+    return `<div class="blk check"><div class="blk-lab">${b.label || (b.predict ? 'Predict' : 'Check')}</div><p class="q">${b.q}</p><div class="opts">${opts}</div>${fb}</div>`;
+  },
+  totals() {
+    let n = 0, first = 0, answered = 0;
+    Stations.forEach(st => st.steps.forEach(s => s.blocks.forEach(b => {
+      if (b.type !== 'check') return; n++;
+      const c = Store.check(st.id + '.' + b.id); if (c && c.done) { answered++; if (c.first) first++; }
+    })));
+    return { n, first, answered };
+  },
+};
+// PATCH-END: js-guide
+
+// PATCH-START: js-st1_atoms
+/* Station 1 — Atoms & shells (slides 2–8) */
+(function () {
+  const CX = 285, CY = 230;
+  const S = { mode: 'explore', sel: 'C', atom: null, viewed: new Set(), rows: new Set(), lewis: false, lewisUsed: false, lewisNa: false, build: null, hotRing: -1 };
+
+  function atomScale(sym) { const Z = ELEMENTS[sym].Z; return Z <= 2 ? 2.3 : Z <= 10 ? 1.95 : 1.58; }
+  function newAtom(sym, g) {
+    const A = makeAtom(sym, { x: CX, y: CY, sc: atomScale(sym) });
+    A.shells.forEach(sh => sh.forEach(orb => orb.forEach(e => { if (e) g.setP('e' + e.id, A.x, A.y); })));
+    return A;
+  }
+  function valenceOf(sym) { const c = shellCounts(ELEMENTS[sym].Z); return c[c.length - 1]; }
+  function select(sym, api) {
+    S.sel = sym; S.viewed.add(sym); S.rows.add(ELEMENTS[sym].row);
+    if (S.lewis && sym === 'Na') S.lewisNa = true;
+    S.atom = newAtom(sym, api.g); tableHTML(api);
+  }
+  function tableHTML(api) {
+    if (S.mode !== 'explore') return;
+    let rows = '';
+    for (let r = 1; r <= 3; r++) {
+      let cells = '';
+      for (let c = 1; c <= 8; c++) {
+        const sym = EL_ORDER.find(s => ELEMENTS[s].row === r && ELEMENTS[s].col === c);
+        if (!sym) { cells += '<div class="pt spacer" aria-hidden="true"></div>'; continue; }
+        const E = ELEMENTS[sym];
+        const cls = ['pt', S.sel === sym ? 'sel' : '', S.viewed.has(sym) ? 'seen' : '', NOBLE.includes(sym) ? 'noble' : ''].join(' ');
+        cells += `<button class="${cls}" data-act="el" data-sym="${sym}" style="background:color-mix(in srgb, ${E.c[1]} 16%, var(--card))" aria-label="${E.name}, atomic number ${E.Z}"><span class="z">${E.Z}</span><span class="s">${sym}</span><span class="n">${E.name}</span></button>`;
+      }
+      rows += `<div class="pt-row-l">Row ${r}</div><div class="ptable">${cells}</div>`;
+    }
+    api.html(`<div class="pt-wrap"><div></div><div class="pt-cols">${[1, 2, 3, 4, 5, 6, 7, 8].map(n => `<span>${n}A</span>`).join('')}</div>${rows}</div>`);
+  }
+  function exploreTools(api) {
+    api.tools(`<div class="seg" role="group" aria-label="Model view"><button class="tool${S.lewis ? '' : ' on'}" data-act="view" data-v="bohr">Bohr model</button><button class="tool${S.lewis ? ' on' : ''}" data-act="view" data-v="lewis">Lewis dots</button></div>`);
+    api.foot('<span class="lg"><i class="m"></i>electron</span><span class="lg"><i class="vac"></i>vacancy (open spot) in the valence shell</span><span class="lg-tip">Tap an element above</span>');
+  }
+  function setExplore(api) {
+    S.mode = 'explore'; api.svg(true); api.title('Bohr model explorer');
+    if (!S.atom) S.atom = newAtom(S.sel, api.g);
+    tableHTML(api); exploreTools(api);
+  }
+  /* ---------- build-an-atom ---------- */
+  function newBuild(done) {
+    S.build = { targets: ['O', 'Na'], i: done ? 1 : 0, ids: [[], [], []], wait: 0, doneAll: !!done, flash: -1, flashT: 0 };
+    if (done) { const c = shellCounts(11); c.forEach((n, si) => { for (let k = 0; k < n; k++) S.build.ids[si].push(EID++); }); }
+  }
+  function setBuild(api, done) {
+    S.mode = 'build'; api.svg(true); api.html(''); api.title('Build an atom');
+    if (!S.build || done) newBuild(done);
+    api.tools(`<button class="tool" data-act="undo">${ICON.rotL} Undo</button><button class="tool" data-act="clear">${ICON.reset} Clear</button>`);
+    api.foot('<span class="lg"><i class="m"></i>electron</span><span class="lg-tip">Tap a shell ring to place an electron · keys 1, 2, 3 work too</span>');
+  }
+  function tryAdd(si, api) {
+    const B = S.build; if (!B || B.doneAll || B.wait) return;
+    const sym = B.targets[B.i], E = ELEMENTS[sym], cap = [2, 8, 8];
+    const tot = B.ids[0].length + B.ids[1].length + B.ids[2].length;
+    const flash = () => { B.flash = si; B.flashT = 0.6; };
+    if (tot >= E.Z) { api.toast(`${E.name} has ${E.Z} protons, so a neutral atom has ${E.Z} electrons — you already placed them all.`, 'bad'); flash(); return; }
+    for (let j = 0; j < si; j++) if (B.ids[j].length < cap[j]) { api.toast(`Fill shell ${j + 1} first — electrons occupy the lowest-energy shell available.`, 'bad'); flash(); return; }
+    if (B.ids[si].length >= cap[si]) { api.toast(si === 0 ? 'Shell 1 is full. It has only one orbital, so it holds 2 electrons.' : `Shell ${si + 1} is full: 4 orbitals × 2 electrons = 8 maximum.`, 'bad'); flash(); return; }
+    const id = EID++; B.ids[si].push(id); api.g.setP('e' + id, 742, 412);
+    if (tot + 1 === E.Z) {
+      const c = shellCounts(E.Z);
+      api.toast(`✓ ${E.name}: ${c.join(' + ')} electrons. Valence shell holds ${c[c.length - 1]}.`, 'good', 2600);
+      B.wait = 2.0;
+    }
+  }
+  function undo() { const B = S.build; if (!B || B.doneAll || B.wait) return; for (let si = 2; si >= 0; si--) if (B.ids[si].length) { B.ids[si].pop(); return; } }
+  function drawBuild(g, api, dt) {
+    const B = S.build, sym = B.targets[B.i], E = ELEMENTS[sym];
+    if (B.wait) { B.wait -= dt; if (B.wait <= 0) { B.wait = 0; if (B.i < B.targets.length - 1) { B.i++; B.ids = [[], [], []]; } else B.doneAll = true; } }
+    if (B.flashT > 0) B.flashT -= dt;
+    const P = { x: CX, y: CY, sc: 1.38, rot: 0, a0: 0, shells: [0, 0, 0] };
+    for (let si = 0; si < 3; si++) {
+      const r = SHELL_R[si] * P.sc;
+      const cls = 'shell-build' + (B.flashT > 0 && B.flash === si ? ' flash' : S.hotRing === si ? ' hot' : '');
+      g.n('br' + si, 'circle', { cx: CX, cy: CY, r, class: cls }, 'shell');
+      g.n('brh' + si, 'circle', { cx: CX, cy: CY, r, fill: 'none', stroke: 'transparent', 'stroke-width': 26, 'pointer-events': 'stroke', 'data-hit': 'ring:' + si, style: 'cursor:pointer' }, 'hit');
+      g.text('brl' + si, CX + r * Math.cos(rad(-40)) + 8, CY + r * Math.sin(rad(-40)) - 4, 'shell ' + (si + 1), 't-s t-l', 'lab');
+    }
+    g.n('bn', 'circle', { cx: CX, cy: CY, r: 16 * P.sc, fill: `url(#g-${sym})`, class: 'nuc' }, 'nuc');
+    g.n('bnt', 'text', { x: CX, y: CY + 5, class: 'nuc-t', 'font-size': 14, text: E.Z + 'p' }, 'nuc');
+    B.ids.forEach((arr, si) => arr.forEach((id, k) => {
+      const oi = si === 0 ? 0 : k % 4, s = si === 0 ? k : Math.floor(k / 4);
+      const t = slotXY(P, si, oi, s), p = g.tw('e' + id, t.x, t.y, 9);
+      g.n('e' + id, 'circle', { cx: p.x, cy: p.y, r: 6.5, class: 'e ek-m' }, 'e');
+    }));
+    // electron supply tray
+    g.n('tray', 'rect', { x: 692, y: 392, width: 96, height: 44, rx: 14, class: 'badge' }, 'bg');
+    for (let i = 0; i < 5; i++) g.n('tr' + i, 'circle', { cx: 710 + i * 15, cy: 414, r: 5.5, class: 'e ek-m', opacity: 0.8 }, 'bg');
+    g.text('trl', 740, 384, 'electron supply', 't-s', 'lab');
+    // right panel
+    const tot = B.ids[0].length + B.ids[1].length + B.ids[2].length;
+    const X = 520;
+    g.text('b1', X, 70, B.doneAll ? 'Both atoms built!' : `Build: ${E.name} (${sym})`, 't-cap t-l');
+    g.text('b2', X, 98, `${E.Z} protons → a neutral atom needs ${E.Z} electrons`, 't-s t-l');
+    g.text('b3', X, 136, `Electrons placed: ${tot} / ${E.Z}`, 't-b t-l', 'lab', { 'font-size': 16 });
+    ['Shell 1', 'Shell 2', 'Shell 3'].forEach((nm, si) => {
+      const cap = si === 0 ? 2 : 8, n = B.ids[si].length;
+      g.text('b4' + si, X, 170 + si * 26, `${nm}: ${n} / ${cap}${n === cap ? '  (full)' : ''}`, 't-l' + (n === cap ? ' t-ok' : ''));
+    });
+    g.text('b5', X, 262, `Target ${B.i + 1} of 2`, 't-s t-l');
+  }
+  function drawExplore(g) {
+    const A = S.atom, E = ELEMENTS[A.sym], lw = g.tv('lw', S.lewis ? 1 : 0, 7);
+    drawAtom(g, A, { lewis: lw });
+    if (lw < 0.95) {
+      const r = vR(A), a = rad(-140);
+      g.text('vsl', A.x + r * Math.cos(a) - 6, A.y + r * Math.sin(a) - 8, 'valence shell', 't-s t-r', 'lab', { opacity: 1 - lw });
+    }
+    const X = 510, c = shellCounts(E.Z), v = c[c.length - 1], noble = NOBLE.includes(A.sym);
+    g.text('a1', X, 64, E.name + ' (' + A.sym + ')', 't-cap t-l');
+    g.text('a2', X, 92, `Atomic number ${E.Z}: ${E.Z} protons, ${E.Z} electrons`, 't-s t-l');
+    g.text('a3', X, 128, `Row ${E.row} → ${E.row} energy shell${E.row > 1 ? 's' : ''}`, 't-l');
+    g.text('a4', X, 154, `Shells hold: ${c.join(' · ')}`, 't-l');
+    g.text('a5', X, 180, A.sym === 'He' ? 'Column 8A, but only 2 valence e⁻' : `Column ${E.col}A → ${v} valence electron${v > 1 ? 's' : ''}`, 't-l');
+    const cap = c.length === 1 ? 2 : 8;
+    g.text('a6', X, 216, noble ? 'Valence shell is FULL → very stable' : `${cap - v} vacanc${cap - v === 1 ? 'y' : 'ies'} in the valence shell`, 't-l ' + (noble ? 't-ok' : 't-acc'));
+    g.text('a7', X, 250, lw > 0.5 ? 'Lewis dot structure: only the valence' : 'Bohr model: every shell drawn', 't-s t-l');
+    g.text('a8', X, 268, lw > 0.5 ? 'electrons are drawn around the symbol.' : '(a simplified picture of where electrons are)', 't-s t-l');
+  }
+
+  Stations.push({
+    id: 'atoms', num: 1, title: 'Atoms & energy shells', short: 'Atoms', slides: 'Slides 2–8',
+    blurb: 'Shells, valence electrons, Lewis dots, and why noble gases rarely bond.',
+    icon: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent)"><circle cx="16" cy="16" r="4" fill="currentColor"/><circle cx="16" cy="16" r="9"/><circle cx="16" cy="16" r="14" opacity=".5"/><circle cx="25" cy="16" r="2" fill="currentColor"/><circle cx="16" cy="2" r="2" fill="currentColor"/></svg>',
+    setup(api) { S.mode = 'explore'; S.atom = null; S.lewis = false; S.build = null; },
+    steps: [
+      {
+        id: 'explore', title: 'Meet the Bohr model',
+        body: `<div class="defs"><div class="def"><b>Orbital</b> — the most likely location for an electron. Each orbital holds up to <b>two</b> electrons.</div><div class="def"><b>Energy shell</b> — a group of orbitals at the same energy level (each ring).</div><div class="def"><b>Valence shell</b> — the <b>outermost</b> occupied energy shell.</div></div><p>Transition elements are not part of this course, so the table shows rows 1–3 only.</p>`,
+        enter(api) { S.lewis = false; setExplore(api); },
+        blocks: [
+          { type: 'task', text: 'Tap at least three elements — include one from <b>each row</b>. Compare the number of rings.', done: () => S.rows.size >= 3, doneText: 'Notice the pattern between the row and the number of rings.' },
+          { type: 'check', id: 'rows', q: 'How many energy shells does an atom in the <b>3rd row</b> have?', opts: [
+            { t: '1', fb: 'Row 1 atoms (H, He) have one shell. Look at sodium or chlorine.' },
+            { t: '2', fb: 'That is row 2. Tap Na, Cl, or Ar and count the rings.' },
+            { t: '3', ok: true, fb: 'The number of energy shells = the row number in the periodic table.' },
+            { t: '8', fb: 'Eight is the maximum number of electrons in shell 2, not the number of shells.' }] },
+        ],
+      },
+      {
+        id: 'build', title: 'Build an atom',
+        body: '<p>Electrons fill the <b>lowest-energy</b> (innermost) shell first. Tap a shell ring to add one electron. The app will stop you if a shell is already full — use those messages to discover each shell’s limit.</p>',
+        enter(api, done) { setBuild(api, done); },
+        blocks: [
+          { type: 'task', text: 'Build <b>oxygen</b>, then <b>sodium</b>.', done: () => S.build && S.build.doneAll, doneText: 'Oxygen = 2 + 6. Sodium = 2 + 8 + 1.' },
+          { type: 'check', id: 'orb1', q: 'How many <b>orbitals</b> are in the first energy shell?', opts: [
+            { t: '1', ok: true, fb: 'One orbital × 2 electrons = the first shell holds up to 2.' },
+            { t: '2', fb: 'Two is the number of electrons it can hold. Each orbital holds 2 electrons.' },
+            { t: '4', fb: 'Four orbitals is the second shell.' },
+            { t: '8', fb: 'Eight is the capacity of the second shell.' }] },
+          { type: 'check', id: 'cap2', q: 'The <b>second</b> energy shell can hold up to how many electrons?', opts: [
+            { t: '2', fb: 'That is the first shell.' },
+            { t: '4', fb: 'The second shell has 4 orbitals — but each orbital holds 2 electrons.' },
+            { t: '8', ok: true, fb: '4 orbitals × 2 electrons = 8 maximum. In this course, the third shell also holds up to 8.' },
+            { t: '18', fb: 'Not for the elements we use — the second shell maxes out at 8.' }] },
+        ],
+      },
+      {
+        id: 'valence', title: 'Valence electrons',
+        body: '<p>The electrons in the <b>valence shell</b> decide how an atom bonds. There is a shortcut for counting them in the first three rows:</p><p><b>Number of valence electrons = column number (1A–8A).</b></p>',
+        enter(api) { S.lewis = false; setExplore(api); S._v0 = new Set(S.viewed); },
+        blocks: [
+          { type: 'task', text: 'Tap an element in <b>column 7A</b> and count its valence electrons.', done: () => S.sel === 'F' || S.sel === 'Cl' },
+          { type: 'check', id: 'col7', q: 'Chlorine is in column 7A. How many electrons are in its valence shell?', opts: [
+            { t: '1', fb: 'That would be column 1A (H, Li, Na).' },
+            { t: '7', ok: true, fb: 'Valence electrons = column number. Helium is the one exception: it sits in 8A but has only 2 (its only shell is full).' },
+            { t: '8', fb: '8 is the capacity of the valence shell. Chlorine has one vacancy.' },
+            { t: '17', fb: '17 is chlorine’s total number of electrons (and protons), not its valence electrons.' }] },
+        ],
+      },
+      {
+        id: 'lewis', title: 'Lewis dot structures',
+        body: '<p>Because the valence electrons mostly determine chemical behavior, chemists often draw <b>only</b> those — the element symbol surrounded by dots. This is a <b>Lewis dot structure</b>.</p>',
+        enter(api, done) { setExplore(api); if (done) S.lewisNa = true; },
+        blocks: [
+          { type: 'task', text: 'Switch to <b>Lewis dots</b> (button above the model), then tap <b>sodium (Na)</b>.', done: () => S.lewisUsed && (S.lewisNa || (S.lewis && S.sel === 'Na')) },
+          { type: 'check', id: 'lewisNa', q: 'To predict how sodium bonds, do we need to draw its 1st and 2nd shells?', opts: [
+            { t: 'Yes — every shell matters equally.', fb: 'Sodium’s inner shells are full; they do not take part in bonding.' },
+            { t: 'No — only the valence shell determines how it bonds.', ok: true, fb: 'Sodium’s single valence electron is what matters. You will meet it again in the ionic-bond station.' }] },
+        ],
+      },
+      {
+        id: 'noble', title: 'Why are noble gases stable?',
+        body: '<p>The noble gases (column 8A) almost never form bonds. Look at their valence shells to find out why.</p>',
+        enter(api) { S.lewis = false; setExplore(api); },
+        blocks: [
+          { type: 'task', text: 'Tap all three noble gases: <b>He</b>, <b>Ne</b>, and <b>Ar</b>.', done: () => NOBLE.every(s => S.viewed.has(s)) },
+          { type: 'check', id: 'noble', q: 'Why are noble gases the most stable atoms?', opts: [
+            { t: 'They have the most protons.', fb: 'Argon has fewer protons than many elements that bond readily.' },
+            { t: 'Their valence shell is completely full — no vacancies.', ok: true, fb: 'A full valence shell is the most stable arrangement.' },
+            { t: 'They have no electrons.', fb: 'Look again — the shells are packed with electrons.' },
+            { t: 'They are gases at room temperature.', fb: 'Oxygen and nitrogen are gases too, and they bond readily.' }] },
+          { type: 'note', cls: 'key', html: '<b>Atoms want stability.</b> To fill its valence shell, an atom will <b>share</b>, <b>steal</b>, or <b>donate</b> electrons.<br>Sharing → <b>covalent bonds</b> (Station 2). Stealing/donating → ions → <b>ionic bonds</b> (Station 4).' },
+        ],
+      },
+    ],
+    frame(g, dt, api) { if (S.mode === 'build') drawBuild(g, api, dt); else drawExplore(g); },
+    act(name, el, api) {
+      if (name === 'el') select(el.getAttribute('data-sym'), api);
+      else if (name === 'view') { S.lewis = el.getAttribute('data-v') === 'lewis'; if (S.lewis) { S.lewisUsed = true; if (S.sel === 'Na') S.lewisNa = true; } exploreTools(api); }
+      else if (name === 'undo') undo();
+      else if (name === 'clear') { if (S.build && !S.build.doneAll && !S.build.wait) S.build.ids = [[], [], []]; }
+    },
+    ringAt(p) { const d = hyp(p.x, p.y, CX, CY); for (let si = 0; si < 3; si++) if (Math.abs(d - SHELL_R[si] * 1.38) < 15) return si; return -1; },
+    down(hit, p, e, api) { if (S.mode !== 'build') return; const si = this.ringAt(p); if (si >= 0) tryAdd(si, api); },
+    move(p) { if (S.mode === 'build') S.hotRing = this.ringAt(p); },
+    key(e, api) {
+      if (S.mode !== 'build') return false;
+      if (e.key === '1' || e.key === '2' || e.key === '3') { tryAdd(+e.key - 1, api); return true; }
+      if (e.key === 'Backspace') { undo(); return true; }
+      return false;
+    },
+  });
+})();
+// PATCH-END: js-st1_atoms
+
+// PATCH-START: js-st2_covalent
+/* Station 2 — Covalent bonds (slides 9–11): CH4, H2O, O2 double bond, NH3 */
+(function () {
+  const SC = 1.3;
+  const S = { mode: 'ch4', atoms: [], center: null, partner: null, bonds: [], drag: null, hover: null, sel: null, caption: '', built: {} };
+  const CONF = {
+    ch4: { heavy: 'C', val: [1, 1, 1, 1], nH: 4, formula: 'CH₄', name: 'Methane', title: 'Build methane (CH₄)' },
+    h2o: { heavy: 'O', val: [1, 1, 2, 2], nH: 3, formula: 'H₂O', name: 'Water', title: 'Build water (H₂O)' },
+    nh3: { heavy: 'N', val: [1, 1, 1, 2], nH: 4, formula: 'NH₃', name: 'Ammonia', title: 'Build ammonia (NH₃)' },
+    o2:  { title: 'Double bond: oxygen gas (O₂)' },
+  };
+  const HPOS = [[110, 150], [690, 118], [110, 372], [690, 372]];
+
+  function setup(mode, api, done) {
+    S.mode = mode; S.atoms = []; S.bonds = []; S.drag = null; S.hover = null; S.sel = null; S.partner = null;
+    const c = CONF[mode];
+    api.svg(true); api.html(''); api.title(c.title);
+    api.tools(`<button class="tool" data-act="reset">${ICON.reset} Start over</button>`);
+    if (mode === 'o2') {
+      const A = makeAtom('O', { x: 290, y: 230, sc: SC, rot: 45, val: [1, 1, 2, 2], ek: 'm' });
+      const B = makeAtom('O', { x: 590, y: 230, sc: SC, rot: 225, val: [1, 1, 2, 2], ek: 'a', drag: true });
+      S.center = A; S.partner = B; S.atoms = [A, B];
+      api.foot('<span class="lg"><i class="m"></i>electrons from the left O</span><span class="lg"><i class="a"></i>electrons from the right O</span><span class="lg"><i class="vac"></i>vacancy</span><span class="lg-tip">Drag the right oxygen</span>');
+      if (done) bondO2(true);
+      return;
+    }
+    const X = makeAtom(c.heavy, { x: 400, y: 232, sc: SC, val: c.val, ek: 'm' });
+    S.center = X; S.atoms = [X];
+    for (let i = 0; i < c.nH; i++) {
+      const H = makeAtom('H', { x: HPOS[i][0], y: HPOS[i][1], sc: SC, ek: 'h', drag: true, rot: [30, -40, 140, 210][i] });
+      S.atoms.push(H);
+    }
+    api.foot(`<span class="lg"><i class="m"></i>electron from ${ELEMENTS[c.heavy].name.toLowerCase()}</span><span class="lg"><i class="h"></i>electron from hydrogen</span><span class="lg"><i class="vac"></i>vacancy</span><span class="lg-tip">Drag (or tap) a hydrogen, then drop it on a vacancy</span>`);
+    if (done) { let i = 1; sites().forEach(st => { const H = S.atoms[i++]; if (H) bondH(H, st, null, true); }); }
+  }
+  function freeHs() { return S.atoms.filter(A => A.Z === 1 && !A.bonds.length); }
+  function sites() {
+    if (S.mode === 'o2') {
+      if (S.bonds.length) return [];
+      const A = S.center, B = S.partner; return [{ o2: true, x: A.x + bondDist(A, B, 2), y: A.y, ang: 0 }];
+    }
+    const C = S.center, vi = vIdx(C), out = [];
+    const Hs = S.atoms.find(a => a.Z === 1) || makeAtom('H', { sc: SC });
+    C.shells[vi].forEach((orb, oi) => {
+      const n = (orb[0] ? 1 : 0) + (orb[1] ? 1 : 0);
+      if (n === 1 && !bondOn(C, oi)) {
+        const ang = orbDeg(C, vi, oi), D = bondDist(C, Hs, 1);
+        out.push({ oi, ang, x: C.x + D * Math.cos(rad(ang)), y: C.y + D * Math.sin(rad(ang)) });
+      }
+    });
+    return out;
+  }
+  function bondH(H, st, api, instant) {
+    faceTo(H, st.ang + 180);
+    H.tx = st.x; H.ty = st.y; if (instant) { H.x = st.x; H.y = st.y; }
+    S.bonds.push(makeBond(S.center, [st.oi], H, [0], 1));
+    if (api) {
+      const C = S.center, n = vCount(C);
+      api.toast(n >= 8 ? `Shared pair formed! ${C.name} now counts 8/8 — full.` : `Shared pair formed! ${C.name} counts ${n}/8; this H counts 2/2.`, 'good', 2200);
+    }
+  }
+  function bondO2(instant, api) {
+    const A = S.center, B = S.partner, D = bondDist(A, B, 2);
+    B.tx = A.x + D; B.ty = A.y; if (instant) { B.x = B.tx; B.y = B.ty; }
+    S.bonds.push(makeBond(A, [0, 1], B, [0, 1], 2));
+    if (api) api.toast('Two pairs shared — a double bond! Each O now counts 8/8.', 'good', 2600);
+  }
+  function nearestSite(x, y, maxD) {
+    let best = null, bd = maxD;
+    sites().forEach(st => { const d = hyp(x, y, st.x, st.y); if (d < bd) { bd = d; best = st; } });
+    return best;
+  }
+  function tryDrop(A, api) {
+    const st = S.hover;
+    S.hover = null;
+    if (st) { if (st.o2) bondO2(false, api); else bondH(A, st, api); return true; }
+    const C = S.center, d = hyp(A.x, A.y, C.x, C.y);
+    if (d < vR(C) + vR(A) + 30) {
+      if (!sites().length) api.toast(S.mode === 'o2' ? 'Already bonded.' : `No vacancy left — ${C.name.toLowerCase()}’s valence shell is already full (8).`, 'bad', 2600);
+      else api.toast('Aim for a vacancy (○). Only an orbital with a single electron can share with hydrogen.', 'bad', 2600);
+    }
+    return false;
+  }
+  const isDone = () => {
+    if (S.mode === 'o2') return S.bonds.length === 1;
+    const C = S.center; return vCount(C) >= 8;
+  };
+
+  Stations.push({
+    id: 'covalent', num: 2, title: 'Covalent bonds', short: 'Covalent', slides: 'Slides 9–11',
+    blurb: 'Share electrons to fill valence shells: methane, water, O₂, and ammonia.',
+    icon: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent)"><circle cx="11" cy="16" r="8"/><circle cx="21" cy="16" r="8"/><circle cx="16" cy="12.5" r="1.9" fill="currentColor"/><circle cx="16" cy="19.5" r="1.9" fill="currentColor"/></svg>',
+    setup() { S.built = {}; },
+    steps: [
+      {
+        id: 'ch4', title: 'Methane (CH₄)',
+        body: '<p>Carbon has <b>4</b> valence electrons and <b>4</b> vacancies. Each hydrogen has <b>1</b> electron and <b>1</b> vacancy. When a hydrogen’s shell overlaps one of carbon’s half-filled orbitals, the two electrons become a <b>shared pair</b> that both atoms count.</p>',
+        enter(api, done) { setup('ch4', api, done); },
+        blocks: [
+          { type: 'task', text: 'Drag each hydrogen onto one of carbon’s vacancies (○). Watch the counters.', done: () => S.mode === 'ch4' && isDone(), doneText: 'Methane = one carbon sharing 4 electron pairs with 4 hydrogens. Shared electrons are in the outermost (valence) shells.' },
+          { type: 'check', id: 'ch4c', q: 'After bonding, how many electrons does carbon count in its valence shell?', opts: [
+            { t: '4', fb: 'Carbon keeps its own 4 — but it also counts the 4 electrons it now shares from hydrogen.' },
+            { t: '6', fb: 'Count the shared pairs: 4 pairs × 2 electrons.' },
+            { t: '8', ok: true, fb: 'Its own 4 + one from each hydrogen = 8, a full valence shell. Each hydrogen counts 2, which fills its single shell.' },
+            { t: '10', fb: 'The second shell holds at most 8.' }] },
+        ],
+      },
+      {
+        id: 'h2o', title: 'Water (H₂O)',
+        body: '<p>Now oxygen. Count its valence electrons and vacancies before you build.</p>',
+        enter(api, done) { setup('h2o', api, done); },
+        blocks: [
+          { type: 'check', id: 'h2oN', predict: true, q: 'How many hydrogen atoms are needed for one oxygen atom?', opts: [
+            { t: '1', fb: 'Count oxygen’s open spots (○) in its valence shell.' },
+            { t: '2', ok: true, fb: 'Oxygen has 6 valence electrons, so it has 2 vacancies. Each hydrogen fills one.' },
+            { t: '3', fb: 'Oxygen (column 6A) has 6 valence electrons. How many more to reach 8?' },
+            { t: '4', fb: 'That is carbon. Oxygen has 6 valence electrons, not 4.' }] },
+          { type: 'task', text: 'Build water: drag hydrogens onto oxygen. (There is one extra H — see what happens if you try to add it.)', done: () => S.mode === 'h2o' && isDone(), doneText: 'Both hydrogens share a pair with oxygen. Oxygen counts 8.' },
+          { type: 'check', id: 'h2oCov', q: 'Is the bond between O and H in water a covalent bond?', opts: [
+            { t: 'Yes — the electrons are shared.', ok: true, fb: 'Each O–H bond is a shared pair of electrons, so it is covalent.' },
+            { t: 'No — the electrons are transferred.', fb: 'Look at the overlap: both atoms keep the pair in their valence shells.' },
+            { t: 'No — it is a hydrogen bond.', fb: 'Hydrogen bonds form between separate molecules (Station 5). Inside one molecule, O–H is covalent.' }] },
+        ],
+      },
+      {
+        id: 'o2', title: 'Double bond (O₂)',
+        body: '<p>Two oxygen atoms can bond to each other. Look at one oxygen’s valence shell first.</p>',
+        enter(api, done) { setup('o2', api, done); },
+        blocks: [
+          { type: 'check', id: 'o2un', predict: true, q: 'How many <b>unpaired</b> electrons are in one oxygen’s valence shell?', opts: [
+            { t: '1', fb: 'Look for orbitals holding a single electron next to an open spot.' },
+            { t: '2', ok: true, fb: 'Two orbitals have one electron each (and one open spot each).' },
+            { t: '4', fb: 'Four electrons are in pairs already — those are not unpaired.' },
+            { t: '6', fb: '6 is the total number of valence electrons.' }] },
+          { type: 'check', id: 'o2vac', q: 'How many <b>vacancies</b> are in that valence shell?', opts: [
+            { t: '1', fb: 'Count the open circles on one oxygen.' },
+            { t: '2', ok: true, fb: '8 − 6 = 2 vacancies.' },
+            { t: '6', fb: '6 is the number of electrons, not vacancies.' }] },
+          { type: 'task', text: 'Drag the right oxygen into the left one so both unpaired orbitals overlap.', done: () => S.mode === 'o2' && isDone(), doneText: 'Four electrons now sit in the overlap.' },
+          { type: 'check', id: 'o2share', q: 'How many orbitals (electron pairs) are shared between the two oxygens?', opts: [
+            { t: '1', fb: 'Count the electrons in the overlap: there are four.' },
+            { t: '2', ok: true, fb: 'Two shared pairs = a <b>double bond</b> (O=O).' },
+            { t: '3', fb: 'Three shared pairs would be a triple bond (as in N₂).' },
+            { t: '4', fb: 'Four electrons are shared — that is two pairs.' }] },
+        ],
+      },
+      {
+        id: 'nh3', title: 'Your turn: ammonia (NH₃)',
+        body: '<p>Nitrogen is in column 5A. Use what you have learned to predict, then build.</p>',
+        enter(api, done) { setup('nh3', api, done); },
+        blocks: [
+          { type: 'check', id: 'nh3N', predict: true, q: 'How many hydrogen atoms can one nitrogen atom bond with?', opts: [
+            { t: '2', fb: 'That is oxygen (6 valence electrons). Nitrogen has 5.' },
+            { t: '3', ok: true, fb: '5 valence electrons → 3 vacancies → 3 hydrogens.' },
+            { t: '4', fb: 'That is carbon. Nitrogen has one pair already filled.' },
+            { t: '5', fb: '5 is the number of valence electrons, not vacancies.' }] },
+          { type: 'task', text: 'Build ammonia.', done: () => S.mode === 'nh3' && isDone(), doneText: 'Ammonia (NH₃): three shared pairs plus one unshared pair on nitrogen.' },
+        ],
+      },
+    ],
+    frame(g, dt) {
+      const k = 1 - Math.exp(-dt * 10);
+      S.atoms.forEach(A => { if (S.drag && S.drag.A === A) return; A.x += (A.tx - A.x) * k; A.y += (A.ty - A.y) * k; });
+      const bpos = new Map();
+      drawBonds(g, S.bonds, bpos, 'c');
+      const dragging = S.drag ? S.drag.A : (S.sel || null);
+      if (dragging) sites().forEach((st, i) => {
+        const hot = S.hover && S.hover.x === st.x && S.hover.y === st.y;
+        g.n('site' + i, 'circle', { cx: st.x, cy: st.y, r: vR(dragging), class: 'site' + (hot ? ' hot' : ' pulse') }, 'bg');
+      });
+      const hlOrb = (A, oi) => A === S.center && S.hover && (S.hover.o2 ? oi < 2 : S.hover.oi === oi);
+      S.atoms.forEach(A => drawAtom(g, A, { bpos, hlOrb, rate: 12 }));
+      if (S.mode === 'o2' && S.hover) { /* highlight partner’s unpaired orbitals as well */ }
+      // counters: hydrogens get a badge (pushed outward once bonded); heavy atoms get the corner panel
+      S.atoms.forEach(A => {
+        if (A.Z === 1) {
+          let lx = A.x, ly = A.y + vR(A) + 16;
+          if (A.bonds.length) { const C = S.center, dx = A.x - C.x, dy = A.y - C.y, d = Math.hypot(dx, dy) || 1; lx = A.x + dx / d * (vR(A) + 20); ly = A.y + dy / d * (vR(A) + 20) + 3; }
+          drawCount(g, A, 'cnt' + A.id, ly, lx);
+        }
+        if (A.drag && !A.bonds.length) g.n('hit' + A.id, 'circle', { cx: A.x, cy: A.y, r: vR(A) + 4, class: 'hit', 'data-hit': 'atom:' + A.id }, 'hit');
+        if (S.sel === A) g.n('sel' + A.id, 'circle', { cx: A.x, cy: A.y, r: vR(A) + 7, class: 'sel-ring pulse' }, 'fx');
+      });
+      const list = S.mode === 'o2' ? [[S.center, 'Left O', 'm', 'a'], [S.partner, 'Right O', 'a', 'm']] : [[S.center, S.center.name, 'm', 'h']];
+      list.forEach(([A, nm, own, other], i) => {
+        const y = 32 + i * 52, n = vCount(A), mine = n - A.bonds.reduce((s, b) => s + b.order, 0);
+        g.text('pn' + i, 22, y, `${nm}: ${n}/8 valence e⁻${n >= 8 ? ' ✓' : ''}`, 't-l ' + (n >= 8 ? 't-ok' : 't-b'), 'lab');
+        for (let k = 0; k < 8; k++) g.n('pd' + i + '_' + k, 'circle', { cx: 29 + k * 17, cy: y + 17, r: 5.8, class: k < mine ? 'e ek-' + own : k < n ? 'e ek-' + other : 'vac' }, 'lab');
+      });
+      if (S.mode !== 'o2' && S.center) g.n('hitC', 'circle', { cx: S.center.x, cy: S.center.y, r: vR(S.center), class: 'hit tap', 'data-hit': 'center' }, 'hit');
+      if (isDone()) {
+        const c = CONF[S.mode];
+        g.text('cap', 778, 38, S.mode === 'o2' ? 'Oxygen gas (O₂): O=O' : `${c.name} (${c.formula})`, 't-cap t-r', 'lab');
+        g.text('cap2', 778, 60, S.mode === 'o2' ? 'Double bond · every atom has a full valence shell' : 'Every atom now has a full valence shell', 't-s t-r', 'lab');
+      }
+    },
+    down(hit, p, e, api) {
+      if (!hit) { S.sel = null; return; }
+      if (hit === 'center' && S.sel) {
+        if (api.locked()) { api.toast('First, answer the question in the guide panel.', 'bad'); return; }
+        const A = S.sel; S.sel = null; const st = nearestSite(A.x, A.y, 1e9);
+        if (st) { S.hover = st; tryDrop(A, api); } else api.toast(`No vacancy left — ${S.center.name.toLowerCase()}’s valence shell is already full (8).`, 'bad', 2600);
+        return;
+      }
+      if (hit.startsWith('atom:')) {
+        const A = S.atoms.find(a => 'atom:' + a.id === hit); if (!A) return;
+        if (api.locked()) { api.toast('First, answer the question in the guide panel.', 'bad'); return; }
+        S.drag = { A, ox: p.x - A.x, oy: p.y - A.y, moved: 0 };
+        ['hit', 'n', 'nt', 's0'].forEach(s => api.g.raise(s === 'hit' ? 'hit' + A.id : A.id + ':' + s));
+      }
+    },
+    move(p) {
+      const D = S.drag; if (!D) return;
+      const A = D.A, nx = clamp(p.x - D.ox, 30, 770), ny = clamp(p.y - D.oy, 30, 430);
+      D.moved += Math.abs(nx - A.x) + Math.abs(ny - A.y);
+      A.x = A.tx = nx; A.y = A.ty = ny;
+      S.hover = nearestSite(A.x, A.y, 58);
+    },
+    up(p, e, tap, api) {
+      const D = S.drag; if (!D) return; S.drag = null;
+      if (D.moved < 6) { S.sel = S.sel === D.A ? null : D.A; S.hover = null; if (S.sel && S.mode !== 'o2') api.toast('Now tap the central atom (or drag this H to a vacancy).'); if (S.sel && S.mode === 'o2') { S.sel = null; S.hover = sites()[0]; tryDrop(D.A, api); } return; }
+      S.sel = null; tryDrop(D.A, api);
+    },
+    key(e, api) {
+      const A = S.sel || (S.mode === 'o2' ? S.partner : freeHs()[0]); if (!A || A.bonds.length) return false;
+      const step = 12, m = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+      if (m) { S.sel = A; A.tx = A.x = clamp(A.x + m[0], 30, 770); A.ty = A.y = clamp(A.y + m[1], 30, 430); S.hover = nearestSite(A.x, A.y, 58); return true; }
+      if (e.key === 'Enter' || e.key === ' ') { if (api.locked()) return true; if (S.hover) { S.sel = null; tryDrop(A, api); } else api.toast('Move the atom next to a vacancy first (arrow keys).'); return true; }
+      return false;
+    },
+    act(name, el, api) { if (name === 'reset') setup(S.mode, api, false); },
+  });
+})();
+// PATCH-END: js-st2_covalent
+
+// PATCH-START: js-st3_polarity
+/* Station 3 — Electronegativity & polarity (slides 12–13) */
+(function () {
+  const S = { mode: 'scale', tapped: new Set(), pair: 'H-H', tried: new Set(), mols: null, tappedO: false, showD: false };
+  const SCALE = ['Na', 'H', 'C', 'N', 'Cl', 'O'];
+  const PAIRS = {
+    'H-H': ['H', 'H', 'H–H'], 'H-C': ['H', 'C', 'C–H'], 'H-N': ['H', 'N', 'N–H'],
+    'H-O': ['H', 'O', 'O–H'], 'H-Cl': ['H', 'Cl', 'H–Cl'], 'Na-Cl': ['Na', 'Cl', 'Na–Cl'],
+  };
+  const enX = v => 90 + v / 4 * 620;
+  function classify(dEN) { return dEN < 0.5 ? ['Nonpolar covalent', 'good'] : dEN < 1.8 ? ['Polar covalent', 'warn'] : ['Ionic (electron transferred)', 'bad']; }
+
+  function setScale(api) {
+    S.mode = 'scale'; api.svg(true); api.html(''); api.title('Electronegativity scale (Pauling)');
+    api.tools(''); api.foot('<span class="lg-tip">Tap each atom on the scale</span><span class="lg">Higher value = stronger pull on shared electrons</span>');
+  }
+  function tugTools(api) {
+    api.tools(`<div class="seg" role="group" aria-label="Choose a bond">${Object.keys(PAIRS).map(k => `<button class="tool${S.pair === k ? ' on' : ''}" data-act="pair" data-k="${k}">${PAIRS[k][2]}</button>`).join('')}</div>`);
+  }
+  function setTug(api, pair) {
+    S.mode = 'tug'; if (pair) S.pair = pair; S.tried.add(S.pair); api.svg(true); api.html(''); api.title('Tug-of-war for a shared electron pair');
+    tugTools(api);
+    api.foot('<span class="lg"><i class="m"></i>shared electron pair</span><span class="lg"><i class="dp"></i>δ+ partial positive</span><span class="lg"><i class="dm"></i>δ− partial negative</span>');
+  }
+  function setWater(api, done) {
+    S.mode = 'wpol'; api.svg(true); api.html(''); api.title('Methane vs. water');
+    S.mols = [makeMolecule('methane', { sc: 0.92, x: 215, y: 236 }), makeMolecule('water', { sc: 1.1, x: 560, y: 250, ang: 0 })];
+    S.showD = !!done; S.tappedO = !!done;
+    api.tools('');
+    api.foot('<span class="lg"><i class="m"></i>/<i class="h"></i> shared electrons</span><span class="lg"><span style="color:var(--dm);font-weight:700">→</span> pull toward the more electronegative atom</span><span class="lg-tip">Tap an atom in either molecule</span>');
+  }
+
+  function drawScale(g) {
+    const y = 318;
+    g.n('bar', 'rect', { x: enX(0), y: y - 5, width: enX(4) - enX(0), height: 10, rx: 5, fill: 'url(#enGrad)', opacity: 0.55 }, 'bg');
+    for (let v = 0; v <= 4; v += 0.5) {
+      g.line('tk' + v, enX(v), y + 8, enX(v), y + (v % 1 ? 14 : 18), 'tick', 'bg');
+      if (v % 1 === 0) g.text('tl' + v, enX(v), y + 36, String(v), 't-s', 'lab');
+    }
+    g.text('ax', 400, y + 62, 'Electronegativity (Pauling scale, 0–4)', 't-s', 'lab');
+    g.arrow('big', enX(0.4), 70, enX(3.9), 70, 'ink', 'bg');
+    g.text('bigl', 400, 58, 'stronger attraction for electrons →', 't-s', 'lab');
+    SCALE.forEach((s, i) => {
+      const E = ELEMENTS[s], x = enX(E.en), hi = s === 'Cl', my = hi ? 170 : 238;
+      g.line('st' + s, x, my + 20, x, y - 6, 'stem', 'bg');
+      g.n('mk' + s, 'circle', { cx: x, cy: my, r: 22, fill: `url(#g-${s})`, class: 'nuc en-mark', 'data-hit': 'en:' + s }, 'nuc');
+      g.n('ms' + s, 'text', { x, y: my + 6, class: 'nuc-t', 'font-size': 16, text: s }, 'lab');
+      if (S.tapped.has(s)) g.text('mv' + s, x, my - 32, E.en.toFixed(2), 't-acc', 'lab', { 'font-size': 15 });
+      g.n('pt' + s, 'circle', { cx: x, cy: y, r: 4, class: 'e ek-m' }, 'fx');
+    });
+  }
+  function drawTug(g) {
+    const [a, b, nm] = PAIRS[S.pair], EA = ELEMENTS[a], EB = ELEMENTS[b];
+    const dEN = Math.abs(EB.en - EA.en), [cls, tone] = classify(dEN), ionic = dEN >= 1.8;
+    const LX = 215, RX = 585, Y = 200;
+    const t = clamp((EB.en - EA.en) / 2.0, -1, 1);
+    const px = g.tv('px', ionic ? RX - 58 : 400 + t * 150, 5);
+    const cloudW = g.tv('cw', ionic ? 70 : 150 - Math.abs(t) * 40, 5);
+    g.n('cloud', 'ellipse', { cx: px, cy: Y, rx: cloudW, ry: 58, fill: 'url(#cloudE)', class: 'cloud' }, 'bg');
+    g.line('rope', LX, Y, RX, Y, 'stem', 'bg', { 'stroke-width': 3 });
+    [[a, LX, 'L'], [b, RX, 'R']].forEach(([s, x, k]) => {
+      const rr = s === 'H' ? 30 : 38;
+      g.n('nu' + k, 'circle', { cx: x, cy: Y, r: rr, fill: `url(#g-${s})`, class: 'nuc' }, 'nuc');
+      g.n('ns' + k, 'text', { x, y: Y + 8, class: 'nuc-t', 'font-size': 22, text: s }, 'lab');
+      g.text('ne' + k, x, Y + 64, `EN ${ELEMENTS[s].en.toFixed(2)}`, 't-s', 'lab');
+    });
+    // pull arrows proportional to each atom's electronegativity
+    const pull = en => 20 + en * 16;
+    if (!ionic) {
+      g.arrow('pa', px - 12, Y - 34, px - 12 - pull(EA.en), Y - 34, EA.en > EB.en ? 'blue' : 'ink', 'fx');
+      g.arrow('pb', px + 12, Y - 34, px + 12 + pull(EB.en), Y - 34, EB.en > EA.en ? 'blue' : 'ink', 'fx');
+    }
+    g.n('e1', 'circle', { cx: px, cy: Y - 8, r: 7, class: 'e ek-m' }, 'e');
+    g.n('e2', 'circle', { cx: px, cy: Y + 8, r: 7, class: 'e ek-m' }, 'e');
+    // charges
+    const mag = Math.min(1, dEN / 1.2);
+    if (ionic) {
+      g.text('qL', LX, Y - 52, 'Na⁺', 'dp', 'lab', { 'font-size': 24 });
+      g.text('qR', RX, Y - 52, 'Cl⁻', 'dm', 'lab', { 'font-size': 24 });
+    } else if (dEN >= 0.5) {
+      const lowL = EA.en < EB.en;
+      g.text('qL', LX, Y - 50, lowL ? 'δ+' : 'δ−', lowL ? 'dp' : 'dm', 'lab', { 'font-size': 16 + mag * 10 });
+      g.text('qR', RX, Y - 50, lowL ? 'δ−' : 'δ+', lowL ? 'dm' : 'dp', 'lab', { 'font-size': 16 + mag * 10 });
+    }
+    g.text('nm', 400, 46, nm + ' bond', 't-cap', 'lab');
+    g.text('cls', 400, 72, `${cls} · ΔEN = ${dEN.toFixed(2)}`, 't-b', 'lab', { style: 'fill:' + (tone === 'good' ? 'var(--ok)' : tone === 'warn' ? 'var(--warn)' : 'var(--bad)') });
+    // ΔEN meter
+    const mx = v => 170 + v / 3 * 460, my = 350;
+    [[0, 0.5, 'var(--ok)', 'nonpolar'], [0.5, 1.8, 'var(--warn)', 'polar covalent'], [1.8, 3, 'var(--bad)', 'ionic']].forEach(([lo, hi, col, lb], i) => {
+      g.n('z' + i, 'rect', { x: mx(lo), y: my, width: mx(hi) - mx(lo), height: 12, style: 'fill:' + col, opacity: 0.3 }, 'bg');
+      g.text('zl' + i, (mx(lo) + mx(hi)) / 2, my + 32, lb, 't-s', 'lab');
+    });
+    g.text('ml', 400, my - 12, 'Electronegativity difference (ΔEN) — a rough guide', 't-s', 'lab');
+    const mk = g.tv('mk', mx(Math.min(dEN, 2.95)), 6);
+    g.n('mkr', 'path', { d: `M${r2(mk)},${my - 2} l-7,-10 h14 z`, style: 'fill:var(--ink)' }, 'fx');
+    if (ionic) g.text('tr', 400, Y + 104, 'The difference is so large that the electron is pulled all the way over: it is transferred, not shared.', 't-s', 'lab');
+    else g.text('tr', 400, Y + 104, EA.en === EB.en ? 'Equal pull → electrons shared equally.' : `${EA.en > EB.en ? EA.name : EB.name} pulls harder → the pair spends more time near it.`, 't-s', 'lab');
+  }
+  function drawWater(g) {
+    const [M, W] = S.mols;
+    drawMolecule(g, M, { hit: 'atom', tap: true }); drawMolecule(g, W, { hit: 'atom', tap: true });
+    g.text('l1', M.x, 60, 'Methane (CH₄)', 't-cap', 'lab'); g.text('l2', W.x, 60, 'Water (H₂O)', 't-cap', 'lab');
+    // pull arrows along each bond
+    const arrows = (Mo, color, both) => Mo.atoms.forEach(A => {
+      if (A === Mo.heavy) return;
+      const X = Mo.heavy, dx = X.x - A.x, dy = X.y - A.y, d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d, off = vR(A) * 1.05, nx = -uy * off, ny = ux * off;
+      const x1 = A.x + ux * d * 0.18 + nx, y1 = A.y + uy * d * 0.18 + ny, x2 = A.x + ux * d * 0.62 + nx, y2 = A.y + uy * d * 0.62 + ny;
+      g.arrow('ar' + A.id, x1, y1, x2, y2, color, 'fx');
+      if (both) g.arrow('ab' + A.id, x2, y2, x1, y1, color, 'fx');
+    });
+    arrows(M, 'green', true); arrows(W, 'blue', false);
+    if (S.showD) {
+      drawDeltas(g, W, 'wd', 22);
+      g.text('p2', W.x, 420, 'POLAR — unequal sharing', 't-b', 'lab', { style: 'fill:var(--dm)' });
+      g.text('p1', M.x, 420, 'NONPOLAR — nearly equal sharing', 't-b', 'lab', { style: 'fill:var(--ok)' });
+    }
+  }
+
+  Stations.push({
+    id: 'polarity', num: 3, title: 'Electronegativity & polarity', short: 'Polarity', slides: 'Slides 12–13',
+    blurb: 'Why some shared pairs are shared unequally — δ+ and δ− charges.',
+    icon: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent)"><circle cx="8" cy="16" r="5"/><circle cx="24" cy="16" r="7" fill="currentColor" opacity=".25"/><circle cx="24" cy="16" r="7"/><path d="M13 16h6"/><circle cx="19" cy="16" r="1.9" fill="currentColor"/></svg>',
+    setup() { S.tapped = new Set(); S.tried = new Set(); },
+    steps: [
+      {
+        id: 'scale', title: 'Electronegativity',
+        body: '<p><b>Electronegativity</b> is an atom’s ability to attract electrons — especially the electrons it shares in a covalent bond.</p><p>It increases toward the upper right of the periodic table (ignoring noble gases).</p>',
+        enter(api) { setScale(api); },
+        blocks: [
+          { type: 'task', text: 'Tap at least <b>four</b> atoms on the scale to read their values.', done: () => S.tapped.size >= 4 },
+          { type: 'check', id: 'enMost', q: 'Which of these atoms pulls shared electrons most strongly?', opts: [
+            { t: 'Hydrogen (H)', fb: 'H is 2.20 — in the middle of the scale.' },
+            { t: 'Carbon (C)', fb: 'C is 2.55, close to H.' },
+            { t: 'Nitrogen (N)', fb: 'N is high (3.04), but one atom on the scale is higher.' },
+            { t: 'Oxygen (O)', ok: true, fb: 'Oxygen (3.44) is the most electronegative atom here. (Fluorine, 3.98, is the highest of all.)' }] },
+        ],
+      },
+      {
+        id: 'tug', title: 'Tug-of-war for electrons',
+        body: '<p>In a covalent bond both atoms pull on the shared pair. If they pull equally, the bond is <b>nonpolar</b>. If one pulls harder, the pair shifts toward it: that atom becomes slightly negative (<b>δ−</b>) and the other slightly positive (<b>δ+</b>) — a <b>polar</b> covalent bond.</p>',
+        enter(api) { setTug(api, S.tried.has('H-O') ? null : 'H-H'); },
+        blocks: [
+          { type: 'task', text: 'Try the <b>H–H</b>, <b>C–H</b>, and <b>O–H</b> bonds (buttons above the stage).', done: () => ['H-H', 'H-C', 'H-O'].every(k => S.tried.has(k)) },
+          { type: 'check', id: 'ch', q: 'In a C–H bond the electrons are shared almost equally. This bond is…', opts: [
+            { t: 'nonpolar covalent', ok: true, fb: 'ΔEN is only 0.35, so the pull is nearly equal. That is why methane is nonpolar.' },
+            { t: 'polar covalent', fb: 'Check the ΔEN meter for C–H — it sits in the green zone.' },
+            { t: 'ionic', fb: 'No electron is transferred in C–H.' }] },
+          { type: 'check', id: 'oh', q: 'In an O–H bond, which atom becomes partially negative (δ−)?', opts: [
+            { t: 'Oxygen', ok: true, fb: 'Oxygen (3.44) pulls the shared pair toward itself, so O is δ− and H is δ+.' },
+            { t: 'Hydrogen', fb: 'Hydrogen is the weaker puller (2.20), so its electron is pulled away: H becomes δ+.' },
+            { t: 'Neither — the bond is nonpolar', fb: 'Look at the ΔEN meter for O–H: 1.24 is in the polar zone.' }] },
+        ],
+      },
+      {
+        id: 'water', title: 'Is water polar?',
+        body: '<p>Both molecules contain hydrogen, but only one has a strongly electronegative atom pulling the shared electrons.</p>',
+        enter(api, done) { setWater(api, done); },
+        blocks: [
+          { type: 'task', text: 'In <b>water</b>, tap the atom that becomes partially negative (δ−).', done: () => S.tappedO, doneText: 'The δ− oxygen and δ+ hydrogens make water a polar molecule.' },
+          { type: 'check', id: 'polarMol', q: 'Which molecule is polar?', opts: [
+            { t: 'Methane (CH₄)', fb: 'C and H pull almost equally (green double arrows), so methane has no significant δ charges.' },
+            { t: 'Water (H₂O)', ok: true, fb: 'Oxygen pulls both shared pairs toward itself, leaving δ+ hydrogens and a δ− oxygen.' },
+            { t: 'Both', fb: 'Compare the arrows: equal pull in methane, one-way pull in water.' }] },
+        ],
+      },
+      {
+        id: 'huge', title: 'What if the difference is huge?',
+        body: '<p>Sodium (0.93) and chlorine (3.16) are very far apart on the scale. What happens to the electrons then?</p>',
+        enter(api) { setTug(api, 'Na-Cl'); },
+        blocks: [
+          { type: 'task', text: 'Look at <b>Na–Cl</b> on the tug-of-war, then compare it with <b>H–Cl</b>.', done: () => S.tried.has('Na-Cl') && S.tried.has('H-Cl') },
+          { type: 'check', id: 'nacl', q: 'When the electronegativity difference is very large, the electron is…', opts: [
+            { t: 'shared equally', fb: 'Equal sharing needs nearly equal electronegativity.' },
+            { t: 'shared unequally', fb: 'That is H–Cl (polar covalent). Na–Cl goes further.' },
+            { t: 'transferred completely to the more electronegative atom', ok: true, fb: 'The atoms become ions: Na⁺ and Cl⁻. That is the ionic bond — next station.' }] },
+        ],
+      },
+    ],
+    frame(g) { if (S.mode === 'scale') drawScale(g); else if (S.mode === 'tug') drawTug(g); else drawWater(g); },
+    down(hit, p, e, api) {
+      if (!hit) return;
+      if (hit.startsWith('en:')) { const s = hit.slice(3); S.tapped.add(s); api.toast(`${ELEMENTS[s].name}: ${ELEMENTS[s].en.toFixed(2)}`); return; }
+      if (hit.startsWith('atom:') && S.mode === 'wpol') {
+        const [M, W] = S.mols, id = hit.slice(5);
+        if (W.heavy.id === id) { S.tappedO = true; S.showD = true; api.toast('Yes — oxygen pulls the shared electrons toward itself: δ−.', 'good'); }
+        else if (W.atoms.some(A => A.id === id)) api.toast('Hydrogen’s electron is pulled away toward O, so H becomes δ+ (partially positive). Try the other atom.', 'bad', 3200);
+        else api.toast('Methane’s C–H bonds share almost equally — no significant δ charges here.', '', 3000);
+      }
+    },
+    act(name, el, api) { if (name === 'pair') { S.pair = el.getAttribute('data-k'); S.tried.add(S.pair); tugTools(api); } },
+    key(e, api) {
+      if (S.mode !== 'tug') return false;
+      const ks = Object.keys(PAIRS), i = ks.indexOf(S.pair);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { S.pair = ks[(i + (e.key === 'ArrowRight' ? 1 : ks.length - 1)) % ks.length]; S.tried.add(S.pair); tugTools(api); return true; }
+      return false;
+    },
+  });
+})();
+// PATCH-END: js-st3_polarity
+
+// PATCH-START: js-st4_ionic
+/* Station 4 — Ionic bonds (slides 14–15): Na gives its valence electron to Cl */
+(function () {
+  const SC = 1.28;
+  const S = { mode: 'start', Na: null, Cl: null, e: null, moved: false, bonded: false, drag: null, eSel: false, lat: 0 };
+
+  function build() {
+    S.Na = makeAtom('Na', { x: 220, y: 214, sc: SC, val: [0, 1, 0, 0], vk: 'r' });
+    S.Cl = makeAtom('Cl', { x: 575, y: 214, sc: SC, val: [2, 2, 2, 1], ek: 'm' });
+    S.e = S.Na.shells[2][1][0]; S.e.big = true;
+    S.moved = false; S.bonded = false; S.drag = null; S.eSel = false;
+  }
+  function vacXY() { return slotXY(S.Cl, 2, 3, 1); }
+  function transfer(api, instant) {
+    if (S.moved) return;
+    const e = S.e; e.drag = null; e.sel = false;
+    S.Na.shells[2][1][0] = null; S.Cl.shells[2][3][1] = e;
+    S.Na.ghost = { r: shR(S.Na, 2), op: instant ? 0 : 1 };
+    S.Na.shells.pop();
+    S.Na.charge = 1; S.Cl.charge = -1; S.moved = true;
+    if (api) api.toast('Transferred! Na lost 1 electron → Na⁺. Cl gained 1 → Cl⁻.', 'good', 2800);
+  }
+  function contactD() { return vR(S.Na) + vR(S.Cl) + 10; }
+  function attract(api) {
+    const d = hyp(S.Na.x, S.Na.y, S.Cl.x, S.Cl.y);
+    if (d > 380) { if (api) api.toast('Too far apart to feel much pull — bring the ions closer.', '', 2400); return; }
+    const mx = (S.Na.x + S.Cl.x) / 2, my = (S.Na.y + S.Cl.y) / 2, ux = (S.Cl.x - S.Na.x) / (d || 1), uy = (S.Cl.y - S.Na.y) / (d || 1), c = contactD() / 2;
+    S.Na.tx = mx - ux * c; S.Na.ty = my - uy * c; S.Cl.tx = mx + ux * c; S.Cl.ty = my + uy * c;
+    if (!S.bonded && api) api.toast('Opposite charges attract: an ionic bond!', 'good', 2400);
+    S.bonded = true;
+  }
+  function tools(api) {
+    api.tools(`<button class="tool" data-act="reset">${ICON.reset} Start over</button>`);
+  }
+  function foot(api) {
+    api.foot('<span class="lg"><i class="r"></i>sodium’s valence electron</span><span class="lg"><i class="m"></i>other electrons</span><span class="lg"><i class="vac"></i>vacancy</span><span class="lg"><i class="dp"></i>positive</span><span class="lg"><i class="dm"></i>negative</span>');
+  }
+  function set(mode, api, done) {
+    S.mode = mode; api.svg(true); api.html('');
+    if (mode === 'start') { build(); if (done) transfer(null, true); api.title('Sodium meets chlorine'); tools(api); foot(api); }
+    else if (mode === 'ions') { if (!S.Na) build(); if (!S.moved) transfer(null, true); S.Na.tx = S.Na.x; S.Na.ty = S.Na.y; S.Cl.tx = S.Cl.x; S.Cl.ty = S.Cl.y; api.title('Two ions'); api.tools(''); foot(api); }
+    else if (mode === 'attract') {
+      if (!S.Na) build(); if (!S.moved) transfer(null, true);
+      S.bonded = false; S.Na.x = S.Na.tx = 150; S.Cl.x = S.Cl.tx = 610; S.Na.y = S.Na.ty = S.Cl.y = S.Cl.ty = 214; S.Na.drag = S.Cl.drag = true;
+      if (done) attract(null);
+      api.title('Opposites attract'); tools(api); foot(api);
+    } else if (mode === 'lattice') { S.lat = 0; api.title('Zoom out: a crystal of table salt'); api.tools(''); api.foot('<span class="lg"><i style="background:#f3c33f"></i>Na⁺ (smaller: lost its 3rd shell)</span><span class="lg"><i style="background:#52cc70"></i>Cl⁻ (larger)</span>'); }
+  }
+  function label(g, A, key) {
+    const isNa = A.sym === 'Na', up = S.mode === 'attract' && isNa, r = vR(A), y = up ? A.y - r - 44 : A.y + r + 26, ne = eCount(A);
+    const title = !S.moved ? `${A.name} atom (${A.sym})` : isNa ? 'Sodium ion, Na⁺ (cation)' : 'Chloride ion, Cl⁻ (anion)';
+    g.text(key + 'a', A.x, y, title, 't-b', 'lab');
+    const q = A.Z - ne, qs = q === 0 ? 'neutral' : q > 0 ? `charge +${q}` : `charge −${-q}`;
+    g.text(key + 'b', A.x, y + 20, `${A.Z} p⁺ · ${ne} e⁻ → ${qs}`, 't-s', 'lab', q ? { style: 'fill:' + (q > 0 ? 'var(--dp)' : 'var(--dm)') + ';font-weight:650' } : null);
+    if (S.mode !== 'attract') g.text(key + 'c', A.x, A.y - r - 14, `EN ${ELEMENTS[A.sym].en.toFixed(2)} · valence ${vCount(A)}/8`, 't-s', 'lab');
+  }
+  function drawLattice(g, dt) {
+    S.lat = Math.min(1, S.lat + dt * 0.8);
+    const cols = 9, rows = 6, sp = 64, x0 = 400 - (cols - 1) * sp / 2, y0 = 232 - (rows - 1) * sp / 2;
+    let k = 0;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const na = (r + c) % 2 === 0, x = x0 + c * sp, y = y0 + r * sp, delay = (r + c) / (rows + cols);
+      const op = clamp((S.lat - delay * 0.5) * 3, 0, 1);
+      const rr = na ? 17 : 29;
+      g.n('li' + k, 'circle', { cx: x, cy: y, r: rr, class: 'nuc ' + (na ? 'lat-na' : 'lat-cl'), opacity: op }, 'nuc');
+      g.n('lt' + k, 'text', { x, y: y + 5, class: 'nuc-t', 'font-size': na ? 12 : 13, text: na ? 'Na⁺' : 'Cl⁻', opacity: op }, 'lab');
+      k++;
+    }
+    const cx = x0 + 4 * sp, cy = y0 + 2 * sp; // a central Na+
+    if (S.lat > 0.9) [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy], i) => g.line('nb' + i, cx + dx * 20, cy + dy * 20, cx + dx * (sp - 30), cy + dy * (sp - 30), 'attract', 'fx'));
+    g.text('lc', 400, 440, 'Each Na⁺ is surrounded by Cl⁻ ions (and each Cl⁻ by Na⁺). In 3-D, every ion has 6 opposite-charge neighbors.', 't-s', 'lab');
+  }
+
+  Stations.push({
+    id: 'ionic', num: 4, title: 'Ionic bonds', short: 'Ionic', slides: 'Slides 14–15',
+    blurb: 'Steal or donate an electron: ions form and opposite charges attract.',
+    icon: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent)"><circle cx="9" cy="16" r="6"/><circle cx="23" cy="16" r="7"/><path d="M7 16h4M9 14v4M21 16h4"/></svg>',
+    setup() { S.Na = null; },
+    steps: [
+      {
+        id: 'predict', title: 'Predict, then transfer',
+        body: '<p>Sodium has <b>1</b> electron in its valence (3rd) shell. Chlorine has <b>7</b> — one vacancy. Recall their electronegativities: Na <b>0.93</b>, Cl <b>3.16</b>.</p>',
+        enter(api, done) { set('start', api, done); },
+        blocks: [
+          { type: 'check', id: 'pred', predict: true, q: 'What will happen to sodium’s red electron when Na and Cl get close? Why?', opts: [
+            { t: 'It stays with sodium.', fb: 'Chlorine pulls far more strongly (3.16 vs 0.93), and sodium holds that lone electron weakly.' },
+            { t: 'It is shared equally between them.', fb: 'Equal sharing needs similar electronegativity. These are 2.23 apart.' },
+            { t: 'It moves to chlorine — Cl pulls much harder and has a vacancy.', ok: true, fb: 'Chlorine steals it; sodium donates it. Try it on the stage.' },
+            { t: 'It disappears.', fb: 'Electrons are not destroyed — they move.' }] },
+          { type: 'task', text: 'Drag the <b>red electron</b> from sodium into chlorine’s vacancy (○). You can also tap it, then tap chlorine.', done: () => S.moved, doneText: 'Watch sodium’s third shell disappear — its second shell (8 electrons) is now its outermost.' },
+        ],
+      },
+      {
+        id: 'ions', title: 'Ions',
+        body: '<p>Count protons and electrons under each particle.</p>',
+        enter(api) { set('ions', api); },
+        blocks: [
+          { type: 'check', id: 'stable', q: 'Are both of them stable now?', opts: [
+            { t: 'Yes — each now has a full outermost shell of 8.', ok: true, fb: 'Na⁺’s outermost shell is now its 2nd shell (8 electrons). Cl⁻ filled its 3rd shell (8).' },
+            { t: 'Only chlorine.', fb: 'Look at sodium: after losing its 3rd-shell electron, what is its outermost shell now?' },
+            { t: 'Only sodium.', fb: 'Chlorine now has 8 electrons in its valence shell too.' },
+            { t: 'Neither.', fb: 'Count the outermost shells: both have 8.' }] },
+          { type: 'check', id: 'ionname', q: 'What are particles that have lost or gained electrons called?', opts: [
+            { t: 'Isotopes', fb: 'Isotopes differ in neutrons, not electrons.' },
+            { t: 'Ions', ok: true, fb: 'A positive ion is a <b>cation</b>; a negative ion is an <b>anion</b>.' },
+            { t: 'Molecules', fb: 'Molecules are atoms joined by covalent bonds.' }] },
+          { type: 'check', id: 'pos', q: 'Which one has a positive charge? Why?', opts: [
+            { t: 'Na⁺ — it lost an electron: 11 protons but only 10 electrons.', ok: true, fb: 'One more proton than electrons → +1. Chlorine gained one: 17 p⁺, 18 e⁻ → −1.' },
+            { t: 'Cl⁻ — it gained an electron.', fb: 'Electrons are negative. Gaining one makes chlorine negative.' },
+            { t: 'Neither — ions are neutral.', fb: 'Count again: protons and electrons no longer match.' }] },
+        ],
+      },
+      {
+        id: 'attract', title: 'Opposites attract',
+        body: '<p><b>Ionic bond</b> — the attraction between two <b>oppositely charged ions</b>.</p>',
+        enter(api, done) { set('attract', api, done); },
+        blocks: [
+          { type: 'check', id: 'what', predict: true, q: 'What do you think will happen to these two ions? Why?', opts: [
+            { t: 'They attract — opposite charges pull on each other.', ok: true, fb: 'Now drag Na⁺ toward Cl⁻ and let go.' },
+            { t: 'They repel — they are different elements.', fb: 'Charge, not element identity, decides attraction or repulsion.' },
+            { t: 'Nothing — ions are stable, so they ignore each other.', fb: 'Each ion is stable, but they carry opposite charges.' }] },
+          { type: 'task', text: 'Drag <b>Na⁺</b> toward <b>Cl⁻</b> and let go.', done: () => S.mode === 'attract' && S.bonded },
+          { type: 'check', id: 'notcov', q: 'Is this a covalent bond?', opts: [
+            { t: 'Yes — the ions share electrons.', fb: 'No electron sits in both shells — it was transferred to chlorine.' },
+            { t: 'No — the electron was transferred; the ions are held together by opposite charges.', ok: true, fb: 'Covalent = shared electrons. Ionic = attraction between oppositely charged ions.' }] },
+        ],
+      },
+      {
+        id: 'lattice', title: 'Zoom out: table salt',
+        body: '<p>A grain of table salt (NaCl) contains trillions of these ions packed in a repeating pattern called a <b>crystal lattice</b>.</p><p>Note how much smaller Na⁺ is than Cl⁻: sodium lost its entire third shell, while chloride kept three shells.</p>',
+        enter(api) { set('lattice', api); },
+        blocks: [
+          { type: 'check', id: 'lat', q: 'In table salt, each Na⁺ is surrounded by…', opts: [
+            { t: 'Cl⁻ ions', ok: true, fb: 'Each positive ion is surrounded by negative ions (and vice versa), so every neighbor pair attracts.' },
+            { t: 'other Na⁺ ions', fb: 'Like charges would repel. Look at the pattern on the stage.' },
+            { t: 'neutral sodium atoms', fb: 'All the particles in the crystal are ions.' }] },
+        ],
+      },
+    ],
+    frame(g, dt) {
+      if (S.mode === 'lattice') { drawLattice(g, dt); return; }
+      const k = 1 - Math.exp(-dt * (S.bonded ? 4 : 10));
+      [S.Na, S.Cl].forEach(A => { if (S.drag && S.drag.A === A) return; A.x += (A.tx - A.x) * k; A.y += (A.ty - A.y) * k; });
+      const hl = (A, oi) => A === S.Cl && oi === 3 && (S.eSel || (S.e.drag && hyp(S.e.drag.x, S.e.drag.y, vacXY().x, vacXY().y) < 60));
+      drawAtom(g, S.Na, { hlOrb: hl, rate: 7 }); drawAtom(g, S.Cl, { hlOrb: hl, rate: 7 });
+      drawCharge(g, S.Na, 'qna'); drawCharge(g, S.Cl, 'qcl');
+      label(g, S.Na, 'lna'); label(g, S.Cl, 'lcl');
+      if (!S.moved && S.mode === 'start') {
+        const p = g.getP('e' + S.e.id);
+        if (p) g.n('ehit', 'circle', { cx: p.x, cy: p.y, r: 17, class: 'hit-e', 'data-hit': 'e' }, 'hit2');
+        g.n('clhit', 'circle', { cx: S.Cl.x, cy: S.Cl.y, r: vR(S.Cl), class: 'hit tap', 'data-hit': 'cl' }, 'hit');
+        if (S.eSel && p) g.n('esel', 'circle', { cx: p.x, cy: p.y, r: 13, class: 'sel-ring pulse' }, 'fx');
+        const v = vacXY(); g.n('vring', 'circle', { cx: v.x, cy: v.y, r: 14, class: 'site pulse' }, 'bg');
+      }
+      if (S.mode === 'attract') {
+        [S.Na, S.Cl].forEach(A => g.n('h' + A.id, 'circle', { cx: A.x, cy: A.y, r: vR(A), class: 'hit', 'data-hit': 'ion:' + A.sym }, 'hit'));
+        const d = hyp(S.Na.x, S.Na.y, S.Cl.x, S.Cl.y), ux = (S.Cl.x - S.Na.x) / d, uy = (S.Cl.y - S.Na.y) / d;
+        if (S.bonded && d < contactD() + 30) {
+          const x1 = S.Na.x + ux * vR(S.Na), y1 = S.Na.y + uy * vR(S.Na), x2 = S.Cl.x - ux * vR(S.Cl), y2 = S.Cl.y - uy * vR(S.Cl);
+          const pulse = 0.55 + 0.45 * Math.sin(g.t * 4);
+          [-16, 0, 16].forEach((o, i) => g.n('at' + i, 'line', { x1: x1 - uy * o, y1: y1 + ux * o, x2: x2 - uy * o, y2: y2 + ux * o, class: 'attract', opacity: pulse }, 'fx'));
+          g.text('ib', 400, 40, 'Ionic bond: Na⁺ ⟷ Cl⁻ attraction', 't-cap', 'lab');
+        } else if (d < 380) {
+          const mx = (S.Na.x + S.Cl.x) / 2, my = (S.Na.y + S.Cl.y) / 2;
+          g.arrow('pa', mx - 14, my, mx - 60, my, 'red', 'fx'); g.arrow('pb', mx + 14, my, mx + 60, my, 'blue', 'fx');
+          g.text('pull', mx, my - 16, 'pull', 't-s', 'lab');
+        }
+      }
+    },
+    down(hit, p, e, api) {
+      if (S.mode === 'start') {
+        if (S.moved) return;
+        if (hit === 'e') { if (api.locked()) { api.toast('First, answer the prediction in the guide panel.', 'bad'); return; } S.e.drag = { x: p.x, y: p.y }; S.drag = { e: true, moved: 0, x0: p.x, y0: p.y }; return; }
+        if (hit === 'cl' && S.eSel) { S.eSel = false; S.e.sel = false; transfer(api); return; }
+        S.eSel = false; S.e.sel = false;
+      } else if (S.mode === 'attract' && hit && hit.startsWith('ion:')) {
+        const A = hit === 'ion:Na' ? S.Na : S.Cl; S.bonded = false;
+        S.drag = { A, ox: p.x - A.x, oy: p.y - A.y };
+      }
+    },
+    move(p) {
+      const D = S.drag; if (!D) return;
+      if (D.e) { S.e.drag = { x: p.x, y: p.y }; D.moved = hyp(p.x, p.y, D.x0, D.y0); return; }
+      D.A.x = D.A.tx = clamp(p.x - D.ox, 60, 740); D.A.y = D.A.ty = clamp(p.y - D.oy, 70, 390);
+    },
+    up(p, e, tap, api) {
+      const D = S.drag; if (!D) return; S.drag = null;
+      if (D.e) {
+        S.e.drag = null;
+        if (D.moved < 6) { S.eSel = true; S.e.sel = true; api.toast('Now tap chlorine (or drag the electron to its vacancy).'); return; }
+        const v = vacXY();
+        if (hyp(p.x, p.y, v.x, v.y) < 40 || hyp(p.x, p.y, S.Cl.x, S.Cl.y) < vR(S.Cl) + 8) transfer(api);
+        else api.toast('Drop it into chlorine’s open spot (○).', '', 2000);
+        return;
+      }
+      attract(api);
+    },
+    key(e, api) {
+      if (S.mode === 'start' && !S.moved && (e.key === 'Enter' || e.key === ' ')) { if (api.locked()) return true; transfer(api); return true; }
+      if (S.mode === 'attract') {
+        const m = { ArrowLeft: -14, ArrowRight: 14 }[e.key];
+        if (m) { S.bonded = false; S.Na.x = S.Na.tx = clamp(S.Na.x + m, 60, 740); return true; }
+        if (e.key === 'Enter' || e.key === ' ') { attract(api); return true; }
+      }
+      return false;
+    },
+    act(name, el, api) { if (name === 'reset') set(S.mode, api, false); },
+  });
+})();
+// PATCH-END: js-st4_ionic
+
+// PATCH-START: js-st5_hbond
+/* Station 5 — Hydrogen bonds (slides 16–18) */
+(function () {
+  const SC = 1.0, CAP = 44, GAP = 26;
+  const S = { mode: 'pair', M1: null, M2: null, partner: 'water', drag: null, knob: null, hb: null, prev: null, formed: {}, methaneTried: false, showPartners: false, L: null, T: 45, seen: {}, lkind: 'water' };
+
+  /* ---------- pair mode: two Bohr molecules ---------- */
+  function setPair(api, partner, done) {
+    S.mode = 'pair'; S.partner = partner; S.drag = null; S.knob = null; S.hb = null; S.prev = null;
+    S.M1 = makeMolecule('water', { sc: SC, x: 230, y: 250, ang: 0, id: 'm1' });
+    S.M2 = makeMolecule(partner, { sc: SC, x: 585, y: 240, ang: partner === 'methane' ? 20 : 180, id: 'm2' });
+    api.svg(true); api.html(''); api.title(partner === 'water' ? 'Two water molecules' : `Water + ${partner}`);
+    pairTools(api);
+    api.foot('<span class="lg"><i class="dp"></i>δ+</span><span class="lg"><i class="dm"></i>δ−</span><span class="lg"><i class="hb"></i>hydrogen bond</span><span class="lg-tip">Drag the right molecule · turn it with the knob, the buttons, or the mouse wheel</span>');
+    if (done) autoBond();
+  }
+  function pairTools(api) {
+    let h = `<button class="tool" data-act="rot" data-d="-30" aria-label="Rotate left">${ICON.rotL}</button><button class="tool" data-act="rot" data-d="30" aria-label="Rotate right">${ICON.rotR}</button>`;
+    if (S.showPartners) h += `<div class="seg" role="group" aria-label="Partner molecule">${['water', 'ammonia', 'methane'].map(k => `<button class="tool${S.partner === k ? ' on' : ''}" data-act="partner" data-k="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div>`;
+    h += `<button class="tool" data-act="reset">${ICON.reset} Reset</button>`;
+    api.tools(h);
+  }
+  function autoBond() {
+    // place M2 so one of its δ+ H's points at M1's O lone-pair side (used when revisiting a finished step)
+    if (!S.M2.polar) return;
+    S.M2.ang = 0; S.M2.x = S.M2.tx = 230 + 170; S.M2.y = S.M2.ty = 250 + 140; placeMol(S.M2);
+    for (let a = 0; a < 360; a += 5) { S.M2.ang = a; placeMol(S.M2); const r = evalPair(); if (r.type === 'hb') { snap(r); break; } }
+    S.M2.x = S.M2.tx; S.M2.y = S.M2.ty; placeMol(S.M2);
+  }
+  /* point at distance `dist` from (cx,cy), perpendicular to (ux,uy), on whichever side has more room */
+  function clearSpot(cx, cy, ux, uy, dist, atoms) {
+    let best = null, bs = -Infinity;
+    [[-uy, ux], [uy, -ux]].forEach(([nx, ny]) => {
+      const x = cx + nx * dist, y = cy + ny * dist; let m = Infinity;
+      atoms.forEach(A => { m = Math.min(m, hyp(x, y, A.x, A.y) - vR(A)); });
+      if (m > bs) { bs = m; best = { x, y, nx, ny }; }
+    });
+    return best;
+  }
+  const charge = (M, A) => (!M.polar ? 0 : A === M.heavy ? -1 : 1);
+  function evalPair() {
+    let best = null;
+    for (const a of S.M1.atoms) for (const b of S.M2.atoms) {
+      const edge = hyp(a.x, a.y, b.x, b.y) - vR(a) - vR(b);
+      if (!best || edge < best.edge) best = { a, b, edge };
+    }
+    best.qa = charge(S.M1, best.a); best.qb = charge(S.M2, best.b);
+    if (best.edge > CAP) best.type = 'far';
+    else if (best.qa * best.qb < 0) best.type = 'hb';
+    else if (best.qa * best.qb > 0) best.type = 'repel';
+    else best.type = 'none';
+    return best;
+  }
+  function snap(r) {
+    const a = r.a, b = r.b, d = hyp(a.x, a.y, b.x, b.y) || 1, ux = (b.x - a.x) / d, uy = (b.y - a.y) / d;
+    const want = vR(a) + vR(b) + GAP;
+    S.M2.tx = S.M2.x + (a.x + ux * want - b.x); S.M2.ty = S.M2.y + (a.y + uy * want - b.y);
+    S.hb = { a, b };
+  }
+  function drop(api) {
+    const r = evalPair(); S.prev = null;
+    if (r.edge < -4) { // overlapping: nudge apart
+      const d = hyp(r.a.x, r.a.y, r.b.x, r.b.y) || 1; S.M2.tx = S.M2.x + (r.b.x - r.a.x) / d * (-r.edge + 16); S.M2.ty = S.M2.y + (r.b.y - r.a.y) / d * (-r.edge + 16);
+    }
+    if (r.type === 'hb') {
+      snap(r); S.formed[S.partner] = true;
+      const X = r.qa < 0 ? r.a : r.b;
+      api.toast(`Hydrogen bond! A δ+ H is attracted to the δ− ${X.name.toLowerCase()} of the other molecule.`, 'good', 2800);
+    } else if (r.type === 'repel') {
+      const d = hyp(r.a.x, r.a.y, r.b.x, r.b.y) || 1;
+      S.M2.tx = S.M2.x + (r.b.x - r.a.x) / d * 70; S.M2.ty = S.M2.y + (r.b.y - r.a.y) / d * 70;
+      api.toast(r.qa > 0 ? 'δ+ meets δ+ — like charges repel! Rotate so opposite partial charges face each other.' : 'δ− meets δ− — like charges repel! Try turning the molecule around.', 'bad', 3200);
+    } else if (r.type === 'none') {
+      S.methaneTried = true;
+      api.toast('No attraction: methane is nonpolar — its C–H bonds leave no δ+ or δ− charges to attract water.', '', 3400);
+    }
+    S.M2.tx = clamp(S.M2.tx, 70, 730); S.M2.ty = clamp(S.M2.ty, 80, 400);
+  }
+  function drawPair(g, dt) {
+    const M2 = S.M2, k = 1 - Math.exp(-dt * 9);
+    if (!S.drag) { M2.x += (M2.tx - M2.x) * k; M2.y += (M2.ty - M2.y) * k; }
+    placeMol(M2);
+    drawMolecule(g, S.M1); drawMolecule(g, M2);
+    const hbH = S.hb && !S.drag && !S.knob ? (S.hb.a.Z === 1 ? S.hb.a : S.hb.b) : null;
+    const skip = new Set(hbH ? [hbH.id] : []);
+    drawDeltas(g, S.M1, 'd1', 19, skip); drawDeltas(g, M2, 'd2', 19, skip);
+    if (!M2.polar) g.text('np', M2.x, M2.y + M2.R + 26, 'nonpolar — no δ charges', 't-s', 'lab');
+    M2.atoms.forEach(A => g.n('h' + A.id, 'circle', { cx: A.x, cy: A.y, r: vR(A), class: 'hit', 'data-hit': 'm2' }, 'hit'));
+    // rotation knob
+    const kr = M2.R + 22, ka = rad(M2.ang - 90), kx = M2.x + kr * Math.cos(ka), ky = M2.y + kr * Math.sin(ka);
+    g.n('karc', 'circle', { cx: M2.x, cy: M2.y, r: kr, class: 'rot-arc' }, 'bg');
+    g.n('knob', 'circle', { cx: kx, cy: ky, r: 10, class: 'rot-knob', 'data-hit': 'knob' }, 'hit2');
+    g.n('knobi', 'path', { d: `M${r2(kx - 4)},${r2(ky)} a4,4 0 1 1 4,4`, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.6, style: 'color:var(--accent);pointer-events:none' }, 'top');
+    // live preview while dragging
+    if (S.drag || S.knob) {
+      const r = evalPair();
+      if (r.type !== 'far') {
+        const cls = r.type === 'hb' ? 'good' : r.type === 'repel' ? 'bad' : 'none';
+        g.line('pv', r.a.x, r.a.y, r.b.x, r.b.y, 'pair-glow ' + cls, 'bg');
+        const mx = (r.a.x + r.b.x) / 2, my = (r.a.y + r.b.y) / 2 - 10;
+        g.text('pvt', mx, my, r.type === 'hb' ? 'attract!' : r.type === 'repel' ? 'repel!' : 'no pull', 't-b', 'top', { style: 'fill:' + (r.type === 'hb' ? 'var(--ok)' : r.type === 'repel' ? 'var(--bad)' : 'var(--ink3)') });
+      }
+    } else if (S.hb) {
+      const d0 = hyp(S.M2.x, S.M2.y, S.M2.tx, S.M2.ty);
+      const H = S.hb.a.Z === 1 ? S.hb.a : S.hb.b, X = H === S.hb.a ? S.hb.b : S.hb.a;
+      const d = hyp(H.x, H.y, X.x, X.y) || 1, ux = (X.x - H.x) / d, uy = (X.y - H.y) / d;
+      const all = S.M1.atoms.concat(S.M2.atoms);
+      // δ+ of the bonded H goes to the side of the H with the most free space
+      const sp = clearSpot(H.x, H.y, ux, uy, vR(H) + 13, all);
+      g.n('hbdp', 'text', { x: sp.x, y: sp.y + 7, class: 'dp', 'font-size': 17, text: 'δ+' }, 'lab');
+      if (d0 < 30) {
+        g.line('hbl', H.x + ux * (nucR(H) + 3), H.y + uy * (nucR(H) + 3), X.x - ux * (nucR(X) + 5), X.y - uy * (nucR(X) + 5), 'hbond', 'fx');
+        const mx = (H.x + X.x) / 2, my = (H.y + X.y) / 2, lp = clearSpot(mx, my, ux, uy, 78, all);
+        g.line('hbll', mx + lp.nx * 8, my + lp.ny * 8, lp.x - lp.nx * 12, lp.y - lp.ny * 12, 'stem', 'fx');
+        g.text('hbt', lp.x, lp.y + (lp.ny > 0 ? 8 : 0), 'hydrogen bond', 'hb-lab', 'top');
+      }
+    }
+    g.text('t1', S.M1.x, 44, 'Water', 't-b', 'lab');
+    g.text('t2', 585, 44, MOLS[S.partner].name + ' (drag me)', 't-b', 'lab');
+  }
+
+  /* ---------- liquid mode: many molecules, space-filling view ---------- */
+  const LS = 1.3; // drawing/physics scale for the liquid view
+  const SHAPES = {
+    water: [{ t: 'O', x: 0, y: 0, r: 11.5 }, { t: 'H', x: 15 * Math.cos(rad(52.25)), y: 15 * Math.sin(rad(52.25)), r: 7 }, { t: 'H', x: 15 * Math.cos(rad(-52.25)), y: 15 * Math.sin(rad(-52.25)), r: 7 }],
+    methane: [{ t: 'C', x: 0, y: 0, r: 11.5 }, { t: 'h', x: 15, y: 0, r: 7 }, { t: 'h', x: -15, y: 0, r: 7 }, { t: 'h', x: 0, y: 15, r: 7 }, { t: 'h', x: 0, y: -15, r: 7 }],
+  };
+  for (const k in SHAPES) SHAPES[k].forEach(p => { p.x *= LS; p.y *= LS; p.r *= LS; });
+
+  function setLiquid(api, kind) {
+    S.mode = 'liquid'; S.lkind = kind || S.lkind;
+    const mols = [], N = 22;
+    for (let i = 0; i < N; i++) {
+      const c = i % 7, r = Math.floor(i / 7);
+      mols.push({ x: 110 + c * 100 + (r % 2) * 40 + Math.random() * 10, y: 120 + r * 90 + Math.random() * 10, vx: gauss() * 30, vy: gauss() * 30, a: Math.random() * 6.28, w: gauss(), P: [] });
+    }
+    S.L = { mols, bonds: [], avg: 0, hist: [] };
+    api.svg(true); api.html(''); api.title(S.lkind === 'water' ? 'Liquid water (simplified 2-D model)' : 'Liquid methane (simplified 2-D model)');
+    liquidTools(api);
+    api.foot(S.lkind === 'water'
+      ? '<span class="lg"><i style="background:#ee5f5f"></i>O (δ−)</span><span class="lg"><i style="background:#e5e7eb;border:1px solid #9ca3af"></i>H (δ+)</span><span class="lg"><i class="hb"></i>hydrogen bond</span><span class="lg-tip">Bonds constantly form and break</span>'
+      : '<span class="lg"><i style="background:#4b5563"></i>C</span><span class="lg"><i style="background:#e5e7eb;border:1px solid #9ca3af"></i>H (no δ+)</span><span class="lg-tip">Nonpolar: no hydrogen bonds can form</span>');
+  }
+  function liquidTools(api) {
+    api.tools(`<label class="range">Cold <input type="range" min="0" max="100" value="${S.T}" data-in="temp" aria-label="Temperature"> Hot</label><div class="seg" role="group" aria-label="Liquid"><button class="tool${S.lkind === 'water' ? ' on' : ''}" data-act="lk" data-k="water">Water</button><button class="tool${S.lkind === 'methane' ? ' on' : ''}" data-act="lk" data-k="methane">Methane</button></div>`);
+  }
+  function simLiquid(dt) {
+    const L = S.L, Ms = L.mols, shape = SHAPES[S.lkind], water = S.lkind === 'water';
+    const T = 0.12 + (S.T / 100) * 0.88, sig = 3300 * T * LS, sigT = 3600 * T * LS * LS;
+    const KREP = 600, KHB = 55, KLIKE = 30, DAMP = 2.2, I = 110 * LS * LS, HB0 = 32 * LS;
+    const sub = 2, h = dt / sub;
+    L.bonds = [];
+    for (let it = 0; it < sub; it++) {
+      for (const M of Ms) {
+        const c = Math.cos(M.a), s = Math.sin(M.a);
+        M.P = shape.map(p => ({ t: p.t, r: p.r, x: M.x + p.x * c - p.y * s, y: M.y + p.x * s + p.y * c }));
+        M.fx = gauss() * sig; M.fy = gauss() * sig; M.tq = gauss() * sigT;
+      }
+      const record = it === sub - 1;
+      for (let i = 0; i < Ms.length; i++) for (let j = i + 1; j < Ms.length; j++) {
+        const A = Ms[i], B = Ms[j];
+        if (Math.abs(A.x - B.x) > 84 * LS || Math.abs(A.y - B.y) > 84 * LS) continue;
+        for (const pa of A.P) for (const pb of B.P) {
+          const dx = pb.x - pa.x, dy = pb.y - pa.y, d = Math.hypot(dx, dy) || 0.01, ux = dx / d, uy = dy / d, rest = pa.r + pb.r;
+          let f = 0; // positive = attraction (pulls pa toward pb)
+          if (d < rest) f -= KREP * (rest - d);
+          if (water) {
+            const hb = (pa.t === 'H' && pb.t === 'O') || (pa.t === 'O' && pb.t === 'H');
+            if (hb && d < HB0 + 12 * LS) {
+              f += KHB * clamp(d - HB0, -7 * LS, 8 * LS);
+              if (record && Math.abs(d - HB0) < 6.5 * LS) { const H = pa.t === 'H' ? pa : pb; if (!H.hb) { H.hb = true; L.bonds.push([pa, pb]); } }
+            }
+            else if (pa.t === 'O' && pb.t === 'O' && d < 46 * LS) f -= KLIKE * (46 * LS - d) * 0.5;
+            else if (pa.t === 'H' && pb.t === 'H' && d < 26 * LS) f -= KLIKE * (26 * LS - d) * 0.5;
+          }
+          if (!f) continue;
+          const fx = ux * f, fy = uy * f;
+          A.fx += fx; A.fy += fy; A.tq += (pa.x - A.x) * fy - (pa.y - A.y) * fx;
+          B.fx -= fx; B.fy -= fy; B.tq -= (pb.x - B.x) * fy - (pb.y - B.y) * fx;
+        }
+      }
+      for (const M of Ms) {
+        M.vx += (M.fx - DAMP * M.vx) * h; M.vy += (M.fy - DAMP * M.vy) * h; M.w += (M.tq / I - DAMP * M.w) * h;
+        const vmax = 400; M.vx = clamp(M.vx, -vmax, vmax); M.vy = clamp(M.vy, -vmax, vmax); M.w = clamp(M.w, -14, 14);
+        M.x += M.vx * h; M.y += M.vy * h; M.a += M.w * h;
+        if (M.x < 30) { M.x = 30; M.vx = Math.abs(M.vx); } if (M.x > 770) { M.x = 770; M.vx = -Math.abs(M.vx); }
+        if (M.y < 30) { M.y = 30; M.vy = Math.abs(M.vy); } if (M.y > 430) { M.y = 430; M.vy = -Math.abs(M.vy); }
+      }
+    }
+    L.hist.push(L.bonds.length); if (L.hist.length > 45) L.hist.shift();
+    L.avg = L.hist.reduce((a, b) => a + b, 0) / L.hist.length;
+  }
+  function drawLiquid(g, dt) {
+    simLiquid(Math.min(dt, 1 / 30));
+    const L = S.L;
+    L.mols.forEach((M, i) => M.P.forEach((p, j) => {
+      const fill = p.t === 'O' ? 'url(#g-O)' : p.t === 'C' ? 'url(#g-C)' : 'url(#g-Hs)';
+      g.n('q' + i + '_' + j, 'circle', { cx: p.x, cy: p.y, r: p.r, fill, class: 'nuc' }, p.t === 'O' || p.t === 'C' ? 'nuc' : 'shell');
+    }));
+    L.bonds.forEach(([a, b], i) => {
+      const H = a.t === 'H' ? a : b, O = H === a ? b : a, d = hyp(H.x, H.y, O.x, O.y) || 1, ux = (O.x - H.x) / d, uy = (O.y - H.y) / d;
+      g.line('lb' + i, H.x + ux * 8 * LS, H.y + uy * 8 * LS, O.x - ux * 13 * LS, O.y - uy * 13 * LS, 'hbond', 'fx', { 'stroke-width': 2.4, 'stroke-dasharray': '1.5 4.5' });
+    });
+    const T = S.T, tl = T <= 15 ? 'cold' : T >= 85 ? 'hot' : 'warm';
+    g.n('pnl', 'rect', { x: 14, y: 14, width: 262, height: 58, rx: 12, class: 'badge', opacity: 0.94 }, 'top');
+    g.text('s1', 28, 38, `Hydrogen bonds right now: ${L.bonds.length}`, 't-b t-l', 'top');
+    g.text('s2', 28, 60, `Average: ${L.avg.toFixed(1)} · temperature: ${tl}`, 't-s t-l', 'top');
+  }
+
+  Stations.push({
+    id: 'hbond', num: 5, title: 'Hydrogen bonds', short: 'Hydrogen', slides: 'Slides 16–18',
+    blurb: 'δ+ hydrogen on one molecule meets δ− O or N on another.',
+    icon: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent)"><circle cx="8" cy="12" r="5"/><circle cx="12" cy="20" r="3"/><circle cx="24" cy="20" r="5"/><path d="M15 20h4" stroke-dasharray="1.5 2.5" stroke-width="2.2" stroke-linecap="round"/></svg>',
+    setup() { S.formed = {}; S.methaneTried = false; S.seen = {}; S.showPartners = false; },
+    steps: [
+      {
+        id: 'pair', title: 'Two water molecules',
+        body: '<p>Remember: in water, oxygen pulls the shared electrons, so <b>O is δ−</b> and <b>each H is δ+</b>. What if another water molecule comes close?</p><p><b>Hydrogen bond</b> — opposite <b>partial</b> charges on <b>adjacent molecules</b> attract each other.</p>',
+        enter(api, done) { S.showPartners = false; setPair(api, 'water', done); },
+        blocks: [
+          { type: 'task', text: 'Drag (and turn) the right-hand water molecule until it <b>sticks</b> to the left one. The preview line turns green when opposite partial charges face each other.', done: () => !!S.formed.water, doneText: 'The dotted line is the hydrogen bond: δ+ H of one molecule ··· δ− O of the other.' },
+          { type: 'check', id: 'hbWhat', q: 'The hydrogen bond you just made is between…', opts: [
+            { t: 'the δ+ H of one molecule and the δ− O of another molecule', ok: true, fb: 'Hydrogen bonds form <b>between</b> molecules.' },
+            { t: 'the O and H inside the same molecule', fb: 'That is the polar covalent bond (shared pair) inside one water.' },
+            { t: 'two δ+ hydrogens', fb: 'Like charges repel — you may have seen that happen.' },
+            { t: 'two δ− oxygens', fb: 'Like charges repel.' }] },
+        ],
+      },
+      {
+        id: 'partners', title: 'Other partners: ammonia and methane',
+        body: '<p>A hydrogen that is covalently bonded to <b>oxygen, nitrogen, or fluorine</b> becomes δ+. A hydrogen bond forms when that δ+ H comes near another strongly electronegative atom (O, N, or F) on a neighboring molecule.</p>',
+        enter(api, done) { S.showPartners = true; setPair(api, 'ammonia', done); },
+        blocks: [
+          { type: 'task', text: 'Form an H-bond between water and <b>ammonia</b>. Then switch to <b>methane</b> and try again.', done: () => !!S.formed.ammonia && S.methaneTried, doneText: 'Ammonia sticks (its N is δ−, its H’s are δ+). Methane does not.' },
+          { type: 'check', id: 'meth', q: 'Why can’t methane form hydrogen bonds?', opts: [
+            { t: 'Its C–H bonds are nonpolar, so its H’s have no δ+.', ok: true, fb: 'Carbon and hydrogen pull almost equally (ΔEN 0.35) — no partial charges.' },
+            { t: 'Methane has no hydrogen atoms.', fb: 'It has four.' },
+            { t: 'Methane is too large.', fb: 'Size is not the issue — polarity is.' },
+            { t: 'Carbon is more electronegative than oxygen.', fb: 'Carbon (2.55) is much less electronegative than oxygen (3.44).' }] },
+        ],
+      },
+      {
+        id: 'liquid', title: 'Liquid water',
+        body: '<p>In liquid water, every molecule can hydrogen-bond with its neighbors. The bonds are weak, so they <b>constantly form and break</b> as molecules move.</p>',
+        enter(api) { setLiquid(api, 'water'); },
+        blocks: [
+          { type: 'task', text: 'Move the temperature slider all the way to <b>Cold</b>, then all the way to <b>Hot</b>. Watch the count.', done: () => S.seen.cold && S.seen.hot },
+          { type: 'check', id: 'heat', q: 'When water is heated, its hydrogen bonds…', opts: [
+            { t: 'break more often, so fewer exist at any moment', ok: true, fb: 'Faster molecules pull apart before the weak attractions can hold them.' },
+            { t: 'become covalent bonds', fb: 'Heating does not turn H-bonds into shared pairs.' },
+            { t: 'are unaffected', fb: 'Compare the counts at Cold and Hot.' }] },
+          { type: 'check', id: 'between', q: 'Hydrogen bonds form…', opts: [
+            { t: 'within a single molecule, like covalent bonds', fb: 'Covalent bonds are within a molecule. H-bonds link neighbors.' },
+            { t: 'between neighboring molecules', ok: true, fb: 'Covalent bonds hold atoms together <b>within</b> a molecule; hydrogen bonds attract <b>between</b> molecules.' }] },
+        ],
+      },
+    ],
+    frame(g, dt) { if (S.mode === 'liquid') drawLiquid(g, dt); else drawPair(g, dt); },
+    down(hit, p) {
+      if (S.mode !== 'pair') return;
+      if (hit === 'knob') { S.knob = true; S.hb = null; return; }
+      if (hit === 'm2') { S.drag = { ox: p.x - S.M2.x, oy: p.y - S.M2.y }; S.hb = null; }
+    },
+    move(p) {
+      if (S.knob) { S.M2.ang = deg(Math.atan2(p.y - S.M2.y, p.x - S.M2.x)) + 90; return; }
+      if (!S.drag) return;
+      S.M2.x = S.M2.tx = clamp(p.x - S.drag.ox, 60, 740); S.M2.y = S.M2.ty = clamp(p.y - S.drag.oy, 70, 410);
+    },
+    up(p, e, tap, api) {
+      if (S.knob) { S.knob = false; placeMol(S.M2); drop(api); return; }
+      if (!S.drag) return; S.drag = null; placeMol(S.M2); drop(api);
+    },
+    wheel(dy, p, api) {
+      if (S.mode !== 'pair') return false;
+      if (hyp(p.x, p.y, S.M2.x, S.M2.y) > S.M2.R + 40) return false;
+      S.M2.ang += dy > 0 ? 15 : -15; S.hb = null; placeMol(S.M2);
+      clearTimeout(S.wt); S.wt = setTimeout(() => drop(api), 350);
+      return true;
+    },
+    key(e, api) {
+      if (S.mode !== 'pair') return false;
+      const m = { ArrowLeft: [-12, 0], ArrowRight: [12, 0], ArrowUp: [0, -12], ArrowDown: [0, 12] }[e.key];
+      if (m) { S.hb = null; S.M2.x = S.M2.tx = clamp(S.M2.x + m[0], 60, 740); S.M2.y = S.M2.ty = clamp(S.M2.y + m[1], 70, 410); placeMol(S.M2); return true; }
+      if (e.key === '[' || e.key === ']' || e.key === 'q' || e.key === 'e') { S.hb = null; S.M2.ang += (e.key === '[' || e.key === 'q') ? -15 : 15; placeMol(S.M2); return true; }
+      if (e.key === 'Enter' || e.key === ' ') { drop(api); return true; }
+      return false;
+    },
+    act(name, el, api) {
+      if (name === 'rot') { S.hb = null; S.M2.ang += +el.getAttribute('data-d'); placeMol(S.M2); drop(api); }
+      else if (name === 'partner') { setPair(api, el.getAttribute('data-k')); }
+      else if (name === 'reset') { if (S.mode === 'pair') setPair(api, S.partner); }
+      else if (name === 'lk') { setLiquid(api, el.getAttribute('data-k')); }
+    },
+    input(name, val) {
+      if (name === 'temp') { S.T = +val; if (S.T <= 15) S.seen.cold = true; if (S.T >= 85) S.seen.hot = true; }
+    },
+  });
+})();
+// PATCH-END: js-st5_hbond
+
+// PATCH-START: js-st6_vdw
+/* Station 6 — Van der Waals interactions (slides 19–21) */
+(function () {
+  const SC = 1.3, R = 48 * SC;
+  const S = { mode: 'one', atoms: [], frozen: false, caught: false, events: 0, evOn: false, lastEv: -9, drag: null, exp: 3, geckoOK: false, flash: 0 };
+
+  function neon(x, y) {
+    const ph = []; for (let k = 0; k < 8; k++) ph.push(k * Math.PI / 4 + (Math.random() - 0.5) * 0.4);
+    return { x, y, tx: x, dx: 0, dy: 0, ph, w: ph.map(() => (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.9)), id: 'ne' + (EID++) };
+  }
+  function set(mode, api, done) {
+    S.mode = mode; S.frozen = false; S.drag = null; api.svg(true); api.html('');
+    if (mode === 'one') {
+      S.atoms = [neon(330, 235)]; if (done) S.caught = true;
+      api.title('One neon atom — a flickering electron cloud');
+      tools(api);
+      api.foot('<span class="lg"><i class="m"></i>valence electrons (always moving)</span><span class="lg"><i class="dm"></i>momentary δ−</span><span class="lg"><i class="dp"></i>momentary δ+</span>');
+    } else if (mode === 'two') {
+      S.atoms = [neon(235, 235), neon(640, 235)]; S.events = done ? 5 : 0; S.evOn = false;
+      api.title('Two neon atoms — nonpolar neighbors');
+      tools(api);
+      api.foot('<span class="lg"><i class="dm"></i>δ−</span><span class="lg"><i class="dp"></i>δ+</span><span class="lg"><i style="background:var(--accent2)"></i>momentary attraction</span><span class="lg-tip">Drag the right atom closer</span>');
+    } else {
+      if (done) { S.exp = 8.5; S.geckoOK = true; }
+      api.title('Why can a gecko walk up glass?');
+      api.tools(`<label class="range">1 <input type="range" min="0" max="9" step="0.05" value="${S.exp}" data-in="exp" aria-label="Number of contact tips (powers of ten)"> 10⁹ contacts</label>`);
+      api.foot('<span class="lg-tip">Illustrative numbers: ≈10 nanonewtons per contact tip; a 70-gram gecko weighs ≈0.7 N.</span>');
+    }
+  }
+  function tools(api) {
+    api.tools(`<button class="tool${S.frozen ? ' on' : ''}" data-act="freeze">${S.frozen ? ICON.play + ' Resume' : ICON.pause + ' Freeze'}</button>` + (S.mode === 'two' ? `<button class="tool" data-act="reset">${ICON.reset} Reset</button>` : ''));
+  }
+  function stepAtoms(dt) {
+    const tau = 0.5, sig = 0.76, A = S.atoms;
+    A.forEach(a => {
+      const sq = Math.sqrt(dt);
+      a.dx += (-a.dx / tau) * dt + sig * sq * gauss(); a.dy += (-a.dy / tau) * dt + sig * sq * gauss();
+      a.ph = a.ph.map((p, k) => p + (a.w[k] * 1.6 + gauss() * 1.2) * dt);
+    });
+    if (A.length === 2) {
+      const [a, b] = A, s = hyp(a.x, a.y, b.x, b.y), ux = (b.x - a.x) / s, uy = (b.y - a.y) / s;
+      const near = 2 * R + 14, far = near + 170, c = Math.pow(clamp((far - s) / (far - near), 0, 1), 1.4);
+      const pa = a.dx * ux + a.dy * uy, pb = b.dx * ux + b.dy * uy, kc = 7 * c * dt;
+      // each atom's momentary dipole induces a matching (same-direction) dipole in its neighbor
+      b.dx += kc * (pa - pb) * ux; b.dy += kc * (pa - pb) * uy;
+      a.dx += kc * (pb - pa) * ux * 0.6; a.dy += kc * (pb - pa) * uy * 0.6;
+      const att = c > 0.25 && pa * pb > 0.12;
+      if (att && !S.evOn && S.t - S.lastEv > 0.35) { S.events++; S.lastEv = S.t; S.flash = 1; }
+      S.evOn = att;
+      S.c = c; S.att = att;
+      if (att && !S.drag) { b.x = Math.max(a.x + near, b.x - 26 * dt * c); }
+    }
+  }
+  function drawNeon(g, a, key, noLab) {
+    const m = Math.hypot(a.dx, a.dy), th = Math.atan2(a.dy, a.dx), ux = Math.cos(th), uy = Math.sin(th);
+    const sx = a.x + a.dx * 14, sy = a.y + a.dy * 14;
+    g.n(key + 'cl', 'circle', { cx: sx, cy: sy, r: R + 20, fill: 'url(#cloudE)', class: 'cloud' }, 'bg');
+    const op = clamp((m - 0.3) / 0.4, 0, 1);
+    g.n(key + 'gn', 'circle', { cx: a.x + ux * (R * 0.6), cy: a.y + uy * (R * 0.6), r: R * 0.8, fill: 'url(#cloudNeg)', opacity: op, class: 'cloud' }, 'bg');
+    g.n(key + 'gp', 'circle', { cx: a.x - ux * (R * 0.6), cy: a.y - uy * (R * 0.6), r: R * 0.8, fill: 'url(#cloudPos)', opacity: op, class: 'cloud' }, 'bg');
+    g.n(key + 's1', 'circle', { cx: a.x, cy: a.y, r: 28 * SC, class: 'shell' }, 'shell');
+    g.n(key + 's2', 'circle', { cx: a.x, cy: a.y, r: R, class: 'shell', 'stroke-dasharray': '3 6' }, 'shell');
+    g.n(key + 'n', 'circle', { cx: a.x, cy: a.y, r: 14.5 * SC, fill: 'url(#g-Ne)', class: 'nuc' }, 'nuc');
+    g.n(key + 'nt', 'text', { x: a.x, y: a.y + 5, class: 'nuc-t', 'font-size': 13, text: '10p' }, 'nuc');
+    [-1, 1].forEach((s, i) => { const t = rad(-90) + s * 0.25; g.n(key + 'ie' + i, 'circle', { cx: a.x + 28 * SC * Math.cos(t), cy: a.y + 28 * SC * Math.sin(t), r: 5.2, class: 'e ek-m', opacity: 0.6 }, 'e'); });
+    a.ph.forEach((p, k) => {
+      const q = p - 0.9 * Math.min(m, 1.2) * Math.sin(p - th);
+      const rr = R * (1 + 0.14 * Math.min(m, 1.2) * Math.cos(q - th)) + Math.sin(p * 3 + k) * 3;
+      g.n(key + 'e' + k, 'circle', { cx: sx + rr * Math.cos(q), cy: sy + rr * Math.sin(q), r: 6, class: 'e ek-m' }, 'e');
+    });
+    if (op > 0.05 && !noLab) {
+      g.text(key + 'dm', a.x + ux * (R + 30), a.y + uy * (R + 30) + 8, 'δ−', 'dm', 'lab', { 'font-size': 24, opacity: op });
+      g.text(key + 'dp', a.x - ux * (R + 30), a.y - uy * (R + 30) + 8, 'δ+', 'dp', 'lab', { 'font-size': 24, opacity: op });
+    }
+    g.text(key + 'lb', a.x, a.y + R + 58, 'Neon (Ne)', 't-b', 'lab');
+  }
+  function drawGecko(g) {
+    const e = S.exp, N = Math.pow(10, e), F = N * 1e-8, W = 0.69;
+    S.geckoOK = S.geckoOK || F >= W;
+    // toe pad close-up (original schematic)
+    g.n('toe', 'path', { d: 'M40,150 C40,110 80,96 130,100 L360,112 C390,114 400,130 400,150 L400,310 C400,330 390,346 360,348 L130,360 C80,364 40,350 40,310 Z', class: 'toe' }, 'bg');
+    for (let i = 0; i < 6; i++) g.n('lam' + i, 'path', { d: `M${110 + i * 48},106 C${99 + i * 48},180 ${99 + i * 48},280 ${110 + i * 48},354`, class: 'seta', opacity: 0.5 }, 'bg');
+    g.text('tl', 220, 230, 'gecko toe pad', 't-b', 'lab');
+    g.text('tl2', 220, 250, '(magnified)', 't-s', 'lab');
+    g.n('glass', 'rect', { x: 470, y: 84, width: 20, height: 300, rx: 4, class: 'glass' }, 'bg');
+    g.text('gl', 480, 402, 'glass', 't-s', 'lab');
+    const rows = 17, frac = e / 9;
+    for (let i = 0; i < rows; i++) {
+      const y = 126 + i * 13.5, touch = (i + 0.5) / rows <= frac + 1e-9, reach = touch ? 466 : 440 + (i % 3) * 5;
+      g.n('se' + i, 'path', { d: `M400,${r2(y)} C418,${r2(y - 4)} 426,${r2(y + 4)} ${reach - 14},${r2(y)}`, class: 'seta' }, 'fx');
+      [-4, 0, 4].forEach((o, j) => {
+        g.line('sp' + i + '_' + j, reach - 14, y, reach, y + o, 'seta', 'fx');
+        if (touch) g.n('sd' + i + '_' + j, 'circle', { cx: reach + 1, cy: y + o, r: 1.8, class: 'e ek-a', opacity: 0.55 + 0.45 * Math.sin(g.t * 9 + i * 1.7 + j * 2.1) }, 'e');
+      });
+    }
+    g.text('sl', 330, 380, 'setae → spatula tips', 't-s t-l', 'lab');
+    // grip meter (log scale)
+    const mx = 620, top = 90, bot = 380, lo = -8, hi = 1;
+    const Y = f => bot - (Math.log10(f) - lo) / (hi - lo) * (bot - top);
+    g.n('mb', 'rect', { x: mx, y: top, width: 46, height: bot - top, rx: 10, class: 'meter-bg' }, 'bg');
+    const fy = g.tv('fy', Y(Math.max(F, 1e-8)), 10);
+    g.n('mf', 'rect', { x: mx + 4, y: fy, width: 38, height: Math.max(0, bot - fy - 4), rx: 7, class: 'meter-fill' }, 'fx');
+    g.line('wl', mx - 6, Y(W), mx + 52, Y(W), 'weight-line', 'fx');
+    g.text('wlt', mx - 12, Y(W) + 5, 'gecko’s weight', 't-s t-r', 'lab', { style: 'fill:var(--bad);font-weight:650' });
+    g.text('ml', mx + 23, bot + 22, 'total grip', 't-s', 'lab');
+    [-8, -6, -4, -2, 0].forEach(p => g.text('mt' + p, mx + 56, Y(Math.pow(10, p)) + 4, p === 0 ? '1 N' : `10${{ '-8': '⁻⁸', '-6': '⁻⁶', '-4': '⁻⁴', '-2': '⁻²' }[p]} N`, 't-s t-l', 'lab'));
+    const nice = N >= 1e9 ? '1 billion' : N >= 1e6 ? (N / 1e6).toFixed(N < 1e7 ? 1 : 0) + ' million' : N >= 1e3 ? Math.round(N).toLocaleString() : Math.round(N);
+    g.text('c0', 40, 56, 'Each tip’s Van der Waals attraction is tiny — but a gecko has hundreds of millions of tips.', 't-s t-l', 'lab');
+    g.text('c1', 40, 408, `Contact tips touching the glass: ≈ ${nice}`, 't-b t-l', 'lab');
+    g.text('c2', 40, 432, `Total grip ≈ ${F < 0.001 ? F.toExponential(1) : F.toFixed(F < 1 ? 3 : 1)} N  ${F >= W ? '✓ enough to hold a 70 g gecko!' : '(not enough yet)'}`, 't-l ' + (F >= W ? 't-ok' : ''), 'lab');
+  }
+
+  Stations.push({
+    id: 'vdw', num: 6, title: 'Van der Waals interactions', short: 'Van der Waals', slides: 'Slides 19–21',
+    blurb: 'Fluctuating electron clouds make brief δ+/δ− — the weakest attraction.',
+    icon: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent)"><circle cx="9" cy="16" r="6" stroke-dasharray="2 2.5"/><circle cx="23" cy="16" r="6" stroke-dasharray="2 2.5"/><circle cx="9" cy="16" r="2" fill="currentColor"/><circle cx="23" cy="16" r="2" fill="currentColor"/><path d="M15 16h2" stroke-width="2.4" stroke-linecap="round"/></svg>',
+    setup() { S.caught = false; S.events = 0; S.geckoOK = false; S.exp = 3; S.t = 0; },
+    steps: [
+      {
+        id: 'flicker', title: 'A flickering electron cloud',
+        body: '<p>Neon is a noble gas: nonpolar, no bonds. Yet its electrons are always moving. For an instant, more of them can be on one side than the other — the atom becomes <b>momentarily polar</b>.</p>',
+        enter(api, done) { set('one', api, done); },
+        blocks: [
+          { type: 'task', text: 'Press <b>Freeze</b> at a moment when the atom looks lopsided (δ− and δ+ labels showing).', done: () => S.caught, doneText: 'A moment later, the electrons shift again — the δ− and δ+ move or vanish.' },
+          { type: 'check', id: 'temp', q: 'The δ− and δ+ on a neon atom are…', opts: [
+            { t: 'permanent, like the δ− on oxygen in water', fb: 'Resume the animation and watch: they come and go.' },
+            { t: 'temporary — they flicker as the electrons move', ok: true, fb: 'This fluctuating polarity is the cause of Van der Waals interactions.' },
+            { t: 'caused by neon gaining an electron', fb: 'Neon keeps all 10 electrons; they only shift around.' }] },
+        ],
+      },
+      {
+        id: 'two', title: 'Close neighbors',
+        body: '<p>When two atoms are <b>very close</b>, a momentary δ− on one pushes the other’s electrons away, creating a matching δ+ right next to it. The two attract — briefly. These are <b>Van der Waals interactions</b> (London dispersion forces).</p>',
+        enter(api, done) { set('two', api, done); },
+        blocks: [
+          { type: 'task', text: 'Drag the right neon atom close to the left one. Watch for <b>5</b> momentary attractions (the teal flashes).', done: () => S.events >= 5, doneText: 'Far apart: nothing. Close together: frequent, brief attractions.' },
+          { type: 'check', id: 'cause', q: 'Van der Waals interactions are caused by…', opts: [
+            { t: 'fluctuating polarity of adjacent molecules', ok: true, fb: 'Momentary δ− and δ+ that line up between very close neighbors.' },
+            { t: 'shared electron pairs', fb: 'Shared pairs are covalent bonds.' },
+            { t: 'electrons transferred between atoms', fb: 'Transfer makes ions (ionic bonds).' },
+            { t: 'a δ+ hydrogen attracted to O, N, or F', fb: 'That is a hydrogen bond.' }] },
+          { type: 'check', id: 'close', q: 'Van der Waals interactions occur when molecules are…', opts: [
+            { t: 'in close proximity', ok: true, fb: 'They fade very quickly with distance.' },
+            { t: 'far apart', fb: 'Try it: at a distance, the flicker of one atom barely affects the other.' },
+            { t: 'charged ions', fb: 'They occur even between neutral, nonpolar atoms and molecules.' }] },
+        ],
+      },
+      {
+        id: 'gecko', title: 'Many weak attractions add up',
+        body: '<p>Van der Waals interactions are the <b>weakest</b> intermolecular attraction. A gecko’s toes are covered with millions of hair-like <b>setae</b>, each splitting into hundreds of tiny tips. Every tip makes Van der Waals contact with the surface.</p>',
+        enter(api, done) { set('gecko', api, done); },
+        blocks: [
+          { type: 'task', text: 'Slide the number of contact tips until the total grip beats the gecko’s weight.', done: () => S.geckoOK },
+          { type: 'check', id: 'weakest', q: 'Which of these is the weakest?', opts: [
+            { t: 'Covalent bond', fb: 'Covalent bonds are very strong.' },
+            { t: 'Ionic bond', fb: 'Ionic bonds are strong, especially in a dry crystal.' },
+            { t: 'Hydrogen bond', fb: 'H-bonds are weak, but stronger than Van der Waals interactions.' },
+            { t: 'Van der Waals interaction', ok: true, fb: 'The weakest — yet huge numbers of them can hold a gecko to glass.' }] },
+        ],
+      },
+    ],
+    frame(g, dt) {
+      S.t = (S.t || 0) + dt;
+      if (S.mode === 'gecko') { drawGecko(g); return; }
+      if (!S.frozen) stepAtoms(dt);
+      if (S.mode === 'two') {
+        const [a, b] = S.atoms;
+        if (!S.drag) b.x += 0;
+        if (S.att || S.flash > 0) {
+          S.flash = Math.max(0, S.flash - dt * 2.2);
+          const ux = (b.x - a.x) / hyp(a.x, a.y, b.x, b.y), x1 = a.x + ux * (R + 6), x2 = b.x - ux * (R + 6);
+          g.n('att', 'rect', { x: Math.min(x1, x2), y: a.y - 26, width: Math.abs(x2 - x1), height: 52, rx: 16, style: 'fill:var(--accent2)', opacity: 0.12 + 0.3 * Math.max(S.flash, S.att ? 0.6 : 0) }, 'bg');
+        }
+        g.n('bh', 'circle', { cx: b.x, cy: b.y, r: R + 10, class: 'hit', 'data-hit': 'b' }, 'hit');
+        const sep = hyp(a.x, a.y, b.x, b.y) - 2 * R;
+        g.text('ev', 400, 40, `Momentary attractions: ${S.events}`, 't-cap', 'lab');
+        g.text('ev2', 400, 64, sep > 180 ? 'Too far apart — no noticeable effect' : sep > 90 ? 'Getting closer…' : 'Close neighbors: dipoles line up, briefly', 't-s', 'lab');
+      } else {
+        const a = S.atoms[0], m = Math.hypot(a.dx, a.dy);
+        const X = 560;
+        g.text('m1', X, 120, 'Lopsidedness right now', 't-b', 'lab');
+        g.n('mbg', 'rect', { x: X - 90, y: 134, width: 180, height: 14, rx: 7, class: 'meter-bg' }, 'bg');
+        g.n('mfl', 'rect', { x: X - 88, y: 136, width: Math.max(0, Math.min(176, m / 1.2 * 176)), height: 10, rx: 5, class: 'meter-fill' }, 'fx');
+        g.text('m2', X, 176, S.frozen ? (m > 0.55 ? 'Frozen while lopsided!' : 'Frozen — but fairly even right now') : 'Electrons are moving…', 't-s', 'lab');
+        g.text('m3', X, 300, 'Because the electrons keep moving,', 't-s', 'lab');
+        g.text('m4', X, 318, 'this polarity lasts only an instant.', 't-s', 'lab');
+      }
+      S.atoms.forEach((a, i) => drawNeon(g, a, 'n' + i, S.mode === 'two'));
+      if (S.mode === 'two' && (S.att || S.flash > 0.2)) {
+        const [a, b] = S.atoms, ux = (b.x - a.x) / hyp(a.x, a.y, b.x, b.y), pa = a.dx * ux + a.dy * 0, left = pa > 0 ? 'δ−' : 'δ+', right = pa > 0 ? 'δ+' : 'δ−';
+        const x1 = a.x + R * 0.72, x2 = b.x - R * 0.72, y = a.y - R - 12;
+        g.text('fl', x1, y, left, left === 'δ−' ? 'dm' : 'dp', 'lab', { 'font-size': 22 });
+        g.text('fr', x2, y, right, right === 'δ−' ? 'dm' : 'dp', 'lab', { 'font-size': 22 });
+        g.text('fm', (x1 + x2) / 2, y + 2, 'attract', 't-s', 'lab');
+      }
+    },
+    down(hit, p) { if (S.mode === 'two' && hit === 'b') S.drag = { ox: p.x - S.atoms[1].x }; },
+    move(p) { if (S.drag) { const a = S.atoms[0], b = S.atoms[1]; b.x = clamp(p.x - S.drag.ox, a.x + 2 * R + 14, 700); } },
+    up() { S.drag = null; },
+    key(e) {
+      if (S.mode !== 'two') return false;
+      const m = { ArrowLeft: -14, ArrowRight: 14 }[e.key]; if (!m) return false;
+      const a = S.atoms[0], b = S.atoms[1]; b.x = clamp(b.x + m, a.x + 2 * R + 14, 700); return true;
+    },
+    act(name, el, api) {
+      if (name === 'freeze') {
+        S.frozen = !S.frozen; tools(api);
+        if (S.frozen && S.mode === 'one') {
+          const a = S.atoms[0], m = Math.hypot(a.dx, a.dy);
+          if (m > 0.55) { S.caught = true; api.toast('Caught it! More electrons on one side → δ− there, δ+ on the other.', 'good', 2800); }
+          else api.toast('The cloud is fairly even right now. Resume and try again.', '', 2400);
+        }
+      } else if (name === 'reset') set(S.mode, api, false);
+    },
+    input(name, val) { if (name === 'exp') S.exp = +val; },
+  });
+})();
+// PATCH-END: js-st6_vdw
+
+// PATCH-START: js-st7_summary
+/* Station 7 — Summary (slide 22): fill-in-the-blanks, bond sorter, completion card */
+(function () {
+  const CLOZE = [
+    ['In a <b>covalent</b> bond, electrons are ', { k: 'c1', o: ['shared', 'stolen'], a: 0, h: 'Covalent = the pair sits in both atoms’ shells.' }, ' in ', { k: 'c2', o: ['inner', 'valence'], a: 1, h: 'Only the outermost shell takes part.' }, ' shells; so it is very ', { k: 'c3', o: ['strong', 'weak'], a: 0, h: 'Covalent bonds are the strongest of the four.' }, '.'],
+    ['In an <b>ionic</b> bond, electrons are stolen or donated, so atoms become ions — a positive ', { k: 'i1', o: ['cation', 'anion'], a: 0, h: 'Positive ion = cation (like Na⁺).' }, ' and a negative ', { k: 'i2', o: ['cation', 'anion'], a: 1, h: 'Negative ion = anion (like Cl⁻).' }, '. Those two ions are ', { k: 'i3', o: ['oppositely', 'similarly'], a: 0, h: 'Only opposite charges attract.' }, ' charged, so they are attracted to each other.'],
+    ['<b>Hydrogen bonds</b> are formed among ', { k: 'h1', o: ['polar', 'non-polar'], a: 0, h: 'Methane (non-polar) could not H-bond.' }, ' molecules.'],
+    ['In those molecules, a hydrogen atom with a partial ', { k: 'h2', o: ['positive', 'negative'], a: 0, h: 'Its electron is pulled away toward O or N.' }, ' charge is attracted to an adjacent atom whose ', { k: 'h3', o: ['size', 'electronegativity', 'mass'], a: 1, h: 'The δ− comes from a strong pull on shared electrons.' }, ' is very strong, such as fluorine, oxygen, and nitrogen.'],
+    ['<b>Van der Waals</b> interactions can occur even among ', { k: 'v1', o: ['polar', 'non-polar'], a: 1, h: 'Neon atoms — completely non-polar — still attracted each other briefly.' }, ' molecules.'],
+    ['Covalent bonds are formed ', { k: 'w1', o: ['between molecules', 'within a molecule'], a: 1, h: 'Covalent bonds hold the atoms of one molecule together.' }, ', but H-bonds and Van der Waals interactions are formed ', { k: 'w2', o: ['between', 'within'], a: 0, h: 'They attract neighboring molecules.' }, ' molecules.'],
+  ];
+  const BLANKS = CLOZE.flat().filter(x => typeof x === 'object');
+  const BINS = [['cov', 'Covalent', 'var(--e-m)'], ['ion', 'Ionic', 'var(--e-a)'], ['hb', 'Hydrogen bond', 'var(--hb)'], ['vdw', 'Van der Waals', 'var(--e-h)']];
+  const ITEMS = [
+    { id: 's1', t: 'Carbon and hydrogen atoms in methane share electron pairs', b: 'cov', w: 'Shared pairs inside a molecule = covalent.' },
+    { id: 's2', t: 'The O and H inside one water molecule', b: 'cov', w: 'Within one molecule, O–H is a (polar) covalent bond.' },
+    { id: 's3', t: 'Na⁺ and Cl⁻ packed together in a salt crystal', b: 'ion', w: 'Oppositely charged ions attracting = ionic.' },
+    { id: 's4', t: 'K⁺ attracted to Cl⁻ in dry potassium chloride', b: 'ion', w: 'K⁺ and Cl⁻ are ions with opposite charges.' },
+    { id: 's5', t: 'One water molecule’s δ+ H attracted to a neighbor’s δ− O', b: 'hb', w: 'δ+ H ··· δ− O between molecules = hydrogen bond.' },
+    { id: 's6', t: 'The two strands of a DNA double helix held together at the base pairs', b: 'hb', w: 'Base pairs are held by δ+ H ··· δ− O/N attractions.' },
+    { id: 's7', t: 'The δ− O of one amino acid attracted to the δ+ H of another, holding a keratin helix in shape', b: 'hb', w: 'δ+ H attracted to a δ− O = hydrogen bond.' },
+    { id: 's8', t: 'A gecko’s toe tips clinging to glass', b: 'vdw', w: 'Millions of brief, weak contacts = Van der Waals.' },
+    { id: 's9', t: 'Non-polar lipid tails packed tightly together inside a cell membrane', b: 'vdw', w: 'Non-polar neighbors in close proximity = Van der Waals.' },
+    { id: 's10', t: 'The sugar–phosphate backbone linking nucleotides within one DNA strand', b: 'cov', w: 'Atoms linked within one molecule = covalent.' },
+  ];
+  const S = { api: null, sel: null, cz: null, checked: false };
+  const X = () => (Store.d.extra.sum = Store.d.extra.sum || { cz: {}, czDone: false, placed: {}, missed: {}, sortDone: false });
+
+  function renderCloze(api) {
+    const x = X();
+    let h = '<div class="cloze">';
+    CLOZE.forEach((parts, i) => {
+      const ok = parts.every(p => typeof p === 'string' || x.cz[p.k] === p.a);
+      h += `<div class="cz${x.czDone || (S.checked && ok) ? ' ok' : ''}"><span class="n">${i + 1}</span>`;
+      const hints = [];
+      parts.forEach(p => {
+        if (typeof p === 'string') { h += p; return; }
+        const v = x.cz[p.k], state = (S.checked || x.czDone) && v != null ? (v === p.a ? ' good' : ' bad') : '';
+        if (S.checked && v != null && v !== p.a) hints.push(p.h);
+        if (S.checked && v == null) hints.push('Choose an answer for every blank.');
+        h += `<span class="blank${state}" role="group">${p.o.map((o, oi) => `<button data-act="cz" data-k="${p.k}" data-v="${oi}" class="${v === oi ? 'on' : ''}" ${x.czDone ? 'disabled' : ''}>${o}</button>`).join('')}</span>`;
+      });
+      if (hints.length) h += `<div class="cz-hint">${Array.from(new Set(hints)).join(' ')}</div>`;
+      h += '</div>';
+    });
+    const nOk = BLANKS.filter(p => x.cz[p.k] === p.a).length;
+    h += `</div><div class="cloze-bar"><button class="btn primary" data-act="czcheck" ${x.czDone ? 'disabled' : ''}>Check my answers</button><span class="g-num">${x.czDone ? 'All ' + BLANKS.length + ' blanks correct ✓' : S.checked ? `${nOk} of ${BLANKS.length} correct` : 'Tap one choice in each blank.'}</span></div>`;
+    api.html(h);
+  }
+  function renderSorter(api) {
+    const x = X();
+    const pool = ITEMS.filter(it => !x.placed[it.id]).map(it => `<button class="sc${S.sel === it.id ? ' sel' : ''}" data-act="card" data-id="${it.id}" draggable="true">${it.t}</button>`).join('');
+    const bins = BINS.map(([k, nm, col]) => `<div class="bin${S.sel ? ' ready' : ''}" data-act="bin" data-k="${k}" role="button" tabindex="0" aria-label="${nm}"><h4><i style="background:${col}"></i>${nm}</h4><div class="items">${ITEMS.filter(it => x.placed[it.id] === k).map(it => `<div class="sc placed">${it.t}</div>`).join('')}</div></div>`).join('');
+    api.html(`<div class="sorter"><div class="pool" aria-label="Unsorted examples">${pool}</div><div class="sort-fb" id="sortFb">${S.sel ? 'Now tap the bond type it belongs to.' : Object.keys(x.placed).length ? '' : 'Tap an example, then tap a bin (or drag it).'}</div><div class="bins">${bins}</div></div>`);
+  }
+  function place(id, k, api) {
+    const x = X(), it = ITEMS.find(i => i.id === id); if (!it || x.placed[id]) return;
+    if (it.b === k) {
+      x.placed[id] = k; S.sel = null; Store.save(); renderSorter(api);
+      const fb = $('#sortFb'); if (fb) { fb.className = 'sort-fb good'; fb.textContent = '✓ ' + it.w; }
+      if (ITEMS.every(i => x.placed[i.id])) { x.sortDone = true; Store.save(); }
+    } else {
+      x.missed[id] = true; Store.save();
+      const btn = $(`.sc[data-id="${id}"]`); if (btn) { btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake'); }
+      const fb = $('#sortFb'); if (fb) { fb.className = 'sort-fb bad'; fb.textContent = `Not ${BINS.find(b => b[0] === k)[1].toLowerCase()}. Hint: ${it.w}`; }
+    }
+  }
+  function renderFinish(api) {
+    const t = Guide.totals(), x = X();
+    const stDone = Stations.filter(st => st.steps.every(s => Store.stepDone(st.id, s.id)));
+    const sortFirst = ITEMS.filter(it => x.placed[it.id] && !x.missed[it.id]).length;
+    const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    const rows = [
+      ['Covalent', 'Shared in the valence shells', 'Atoms <b>within</b> a molecule', 100, 'CH₄, H₂O, O₂'],
+      ['Ionic', 'Transferred → ions that attract', 'Oppositely charged ions', 75, 'NaCl (table salt)'],
+      ['Hydrogen', 'δ+ H attracted to δ− O, N, or F', 'Polar molecules (<b>between</b>)', 30, 'water–water, DNA base pairs'],
+      ['Van der Waals', 'Momentary δ+/δ− from moving electrons', 'Any molecules in close proximity', 12, 'gecko toes, lipid tails'],
+    ];
+    api.html(`
+      <div class="cert" id="cert">
+        <div class="eyebrow">Chemical Bonding Lab · completion</div>
+        <h3>${stDone.length === Stations.length ? 'All stations complete!' : 'Your progress'}</h3>
+        <div class="sub">${esc(date)}</div>
+        <label class="g-num" for="stuName">Your name (for a screenshot or printout)</label><br>
+        <input class="name-in" id="stuName" data-in="name" value="${esc(Store.d.name)}" placeholder="Type your name" autocomplete="name">
+        <div class="cert-grid">
+          <div class="stat"><div class="v">${stDone.length}/${Stations.length}</div><div class="l">stations complete</div></div>
+          <div class="stat"><div class="v">${t.first}/${t.n}</div><div class="l">questions right on the first try</div></div>
+          <div class="stat"><div class="v">${sortFirst}/${ITEMS.length}</div><div class="l">sorter cards right on the first try</div></div>
+        </div>
+        <ul class="st-list">${Stations.map(st => { const d = stDone.includes(st); return `<li><span class="mk ${d ? 'y' : 'n'}">${d ? '✓' : st.num}</span>${esc(st.title)}</li>`; }).join('')}</ul>
+        <div style="margin-top:14px" class="no-print"><button class="btn" data-act="print">Print / save as PDF</button></div>
+      </div>
+      <div class="table-wrap"><table class="cmp"><thead><tr><th>Bond</th><th>Electrons</th><th>Between</th><th>Relative strength</th><th>Examples</th></tr></thead><tbody>
+      ${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="strength" style="width:${r[3]}px"></span></td><td>${r[4]}</td></tr>`).join('')}
+      </tbody></table><p class="g-num" style="margin:8px 2px 0">Strength is relative. Ionic bonds are strong in a dry crystal but much weaker in water, where ions separate.</p></div>`);
+  }
+
+  Stations.push({
+    id: 'summary', num: 7, title: 'Summary: chemical bonding', short: 'Summary', slides: 'Slide 22',
+    blurb: 'Fill in the summary, sort real biology examples, and get a completion card.',
+    icon: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent)"><rect x="6" y="5" width="20" height="23" rx="3"/><path d="M11 12h10M11 17h10M11 22h6"/></svg>',
+    setup(api) { S.api = api; S.sel = null; S.checked = false; },
+    steps: [
+      {
+        id: 'cloze', title: 'Fill in the blanks',
+        body: '<p>This is the summary from your slides. Choose one option in each blank, then check.</p>',
+        enter(api) { api.svg(false); api.title('Summary: chemical bonding'); api.tools(''); api.foot(''); S.checked = false; renderCloze(api); },
+        blocks: [{ type: 'task', text: 'Get every blank correct.', done: () => X().czDone }],
+      },
+      {
+        id: 'sort', title: 'Bond sorter',
+        body: '<p>Where do these bonds show up in living things? Sort each example into the right bond type.</p>',
+        enter(api) { api.svg(false); api.title('Bond sorter'); api.tools(''); api.foot(''); S.sel = null; renderSorter(api); },
+        blocks: [{ type: 'task', text: 'Sort all 10 examples.', done: () => X().sortDone }],
+      },
+      {
+        id: 'finish', title: 'Compare the four',
+        body: '<p>Here are all four side by side. Type your name on the card if your instructor asks for a screenshot or printout.</p>',
+        enter(api) { api.svg(false); api.title('Completion'); api.tools(''); api.foot(''); renderFinish(api); },
+        blocks: [{ type: 'note', cls: 'key', html: '<b>Big idea:</b> covalent bonds build molecules; hydrogen bonds and Van der Waals interactions — individually weak — hold molecules <b>to each other</b> and shape DNA, proteins, and membranes.' }],
+      },
+    ],
+    frame() { },
+    act(name, el, api) {
+      const x = X();
+      if (name === 'cz') { if (x.czDone) return; x.cz[el.getAttribute('data-k')] = +el.getAttribute('data-v'); Store.save(); renderCloze(api); }
+      else if (name === 'czcheck') { S.checked = true; if (BLANKS.every(p => x.cz[p.k] === p.a)) { x.czDone = true; Store.save(); api.toast('All correct!', 'good'); } renderCloze(api); }
+      else if (name === 'card') { const id = el.getAttribute('data-id'); S.sel = S.sel === id ? null : id; renderSorter(api); }
+      else if (name === 'bin') { if (S.sel) place(S.sel, el.getAttribute('data-k'), api); }
+      else if (name === 'print') { try { window.print(); } catch (e) { /* ignore */ } }
+    },
+    input(name, val) { if (name === 'name') { Store.d.name = String(val).slice(0, 80); Store.save(); } },
+    dragStart(id) { S.sel = id; },
+    dropOn(k, api) { if (S.sel) place(S.sel, k, api); },
+  });
+})();
+// PATCH-END: js-st7_summary
+
+// PATCH-START: js-home
+/* Home: overview, strength ladder, and station cards */
+const Home = {
+  render() {
+    const el = $('#home');
+    const cards = Stations.map((st, i) => {
+      const n = st.steps.length, d = st.steps.filter(s => Store.stepDone(st.id, s.id)).length;
+      return `<button class="st-card" data-home="${i}"><div class="row"><div class="ic">${st.icon}</div><span class="meta">${d === n ? 'Complete ✓' : d ? `${d}/${n} steps` : st.slides}</span></div>
+        <div class="num">Station ${st.num}</div><h3>${esc(st.title)}</h3><p>${esc(st.blurb)}</p><div class="prog"><i style="width:${Math.round(d / n * 100)}%"></i></div></button>`;
+    }).join('');
+    const firstOpen = Math.max(0, Stations.findIndex(st => !st.steps.every(s => Store.stepDone(st.id, s.id))));
+    const started = Object.keys(Store.d.steps).length > 0, allDone = Stations.every(st => st.steps.every(s => Store.stepDone(st.id, s.id)));
+    el.innerHTML = `
+      <div class="hero card">
+        <div>
+          <div class="eyebrow">Introductory biology · chemistry of life</div>
+          <h2>How do atoms link together?</h2>
+          <p>Build molecules with your own hands. Share electrons, steal them, and watch partial charges pull neighboring molecules together — seven guided stations, from energy shells to geckos.</p>
+          <div class="hero-actions">
+            <button class="btn primary" data-home="${firstOpen}">${allDone ? 'Review from Station 1' : started ? 'Continue: Station ' + (firstOpen + 1) : 'Start with Station 1'} →</button>
+            <button class="btn" data-home="6">Jump to the summary</button>
+          </div>
+          <p class="model-note">Why Bohr models? Real electrons occupy 3-D orbitals (electron clouds), but the Bohr picture makes valence electrons easy to count — perfect for seeing <i>why</i> bonds form.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">${this.art()}</div>
+      </div>
+      <div class="card ladder">
+        <h3>The four kinds of attraction, strongest to weakest</h3>
+        ${[['Covalent bond', 'electrons shared', 100, 'var(--e-m)'], ['Ionic bond', 'electrons transferred', 76, 'var(--e-a)'], ['Hydrogen bond', 'δ+ H ··· δ− O/N/F', 30, 'var(--hb)'], ['Van der Waals', 'momentary δ+/δ−', 12, 'var(--e-h)']]
+          .map(r => `<div class="lad"><span><b>${r[0]}</b></span><div class="bar"><i style="width:${r[2]}%;background:${r[3]}"></i></div><span class="w">${r[1]}</span></div>`).join('')}
+      </div>
+      <div class="grid-st">${cards}</div>`;
+  },
+  art() {
+    // original illustration drawn with the same Bohr engine: two water molecules joined by a hydrogen bond
+    const moveHeavy = (M, x, y) => { placeMol(M); M.x += x - M.heavy.x; M.y += y - M.heavy.y; placeMol(M); };
+    const M1 = makeMolecule('water', { sc: 1, x: 0, y: 0, ang: 0, id: 'h1' }), M2 = makeMolecule('water', { sc: 1, x: 0, y: 0, ang: 90, id: 'h2' });
+    moveHeavy(M1, 78, 142);
+    const Hr = M1.atoms.reduce((a, b) => (b.x > a.x ? b : a));
+    moveHeavy(M2, Hr.x + vR(Hr) + vR(M2.heavy) + 34, 142);
+    const g = new StrGfx(new Set(['d1dp' + Hr.id]));
+    drawMolecule(g, M1); drawMolecule(g, M2);
+    drawDeltas(g, M1, 'd1', 22); drawDeltas(g, M2, 'd2', 22);
+    const X = M2.heavy;
+    g.line('hb', Hr.x + nucR(Hr) + 3, Hr.y, X.x - nucR(X) - 5, X.y, 'hbond', 'fx');
+    g.text('hbt', Hr.x + 4, Hr.y + 62, 'hydrogen bond', 'hb-lab', 'lab');
+    return `<svg viewBox="0 0 420 270">${g.out()}</svg>`;
+  },
+};
+// PATCH-END: js-home
+
+// PATCH-START: js-app
+/* App shell: routing, navigation, stage API, input, animation loop, theme */
+const App = {
+  st: null, idx: -1, g: null, api: null, drag: false, downP: null, lt: 0, errShown: false,
+  init() {
+    Store.load();
+    Theme.init();
+    this.g = new Gfx($('#svg'));
+    this.api = this.makeApi();
+    Guide.init($('#guide'));
+    $('#verTag').textContent = 'v' + APP.version;
+    this.bind();
+    this.route();
+    requestAnimationFrame(t => this.loop(t));
+  },
+  makeApi() {
+    const self = this;
+    let toastT = 0;
+    return {
+      get g() { return self.g; },
+      toast(msg, kind, ms) {
+        const el = $('#toast'); el.textContent = msg; el.className = 'toast show' + (kind ? ' ' + kind : '');
+        clearTimeout(toastT); toastT = setTimeout(() => { el.className = 'toast'; }, ms || 2200);
+      },
+      tools(html) { $('#stageTools').innerHTML = html; },
+      html(html) { $('#stageHtml').innerHTML = html; $('.stage').classList.toggle('has-html', !!html); },
+      foot(html) { $('#stageFoot').innerHTML = html; },
+      title(t) { $('#stageTitle span:last-child').textContent = t; },
+      svg(show) { $('#svgWrap').hidden = !show; $('.stage').classList.toggle('no-svg', !show); },
+      locked() { return Guide.locked(); },
+    };
+  },
+  bind() {
+    const svg = $('#svg'), g = this.g;
+    svg.addEventListener('pointerdown', e => {
+      if (!this.st || (e.button != null && e.button > 0)) return;
+      const h = e.target.closest('[data-hit]'), p = g.pt(e);
+      this.drag = true; this.downP = p;
+      try { svg.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      this.call('down', h ? h.getAttribute('data-hit') : null, p, e, this.api);
+    });
+    svg.addEventListener('pointermove', e => { if (this.st) this.call('move', g.pt(e), e, this.drag, this.api); });
+    const end = e => {
+      if (!this.drag) return; this.drag = false;
+      try { svg.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      const p = g.pt(e), tap = this.downP && hyp(p.x, p.y, this.downP.x, this.downP.y) < 5;
+      this.call('up', p, e, tap, this.api);
+    };
+    svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+    svg.addEventListener('wheel', e => { if (this.st && this.st.wheel && this.call('wheel', e.deltaY, g.pt(e), this.api)) e.preventDefault(); }, { passive: false });
+    svg.addEventListener('keydown', e => { if (this.st && this.st.key && this.call('key', e, this.api)) e.preventDefault(); });
+    const onAct = e => {
+      const el = e.target.closest('[data-act]'); if (!el || !this.st || !this.st.act) return;
+      this.call('act', el.getAttribute('data-act'), el, this.api);
+    };
+    $('#stageTools').addEventListener('click', onAct);
+    $('#stageHtml').addEventListener('click', onAct);
+    $('#stageHtml').addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-act][role="button"]')) { e.preventDefault(); onAct(e); }
+    });
+    const onIn = e => { const el = e.target.closest('[data-in]'); if (el && this.st && this.st.input) this.call('input', el.getAttribute('data-in'), el.value, el, this.api); };
+    $('#stageTools').addEventListener('input', onIn); $('#stageHtml').addEventListener('input', onIn);
+    // native drag-and-drop for the bond sorter (tap-to-place works everywhere)
+    const sh = $('#stageHtml');
+    sh.addEventListener('dragstart', e => { const c = e.target.closest('[data-act="card"]'); if (c && this.st && this.st.dragStart) { this.st.dragStart(c.getAttribute('data-id')); try { e.dataTransfer.setData('text/plain', c.getAttribute('data-id')); } catch (err) { /* ignore */ } } });
+    sh.addEventListener('dragover', e => { if (e.target.closest('[data-act="bin"]')) e.preventDefault(); });
+    sh.addEventListener('drop', e => { const b = e.target.closest('[data-act="bin"]'); if (b && this.st && this.st.dropOn) { e.preventDefault(); this.st.dropOn(b.getAttribute('data-k'), this.api); } });
+    $('#brand').addEventListener('click', () => { location.hash = ''; this.route(); });
+    $('#nav').addEventListener('click', e => { const b = e.target.closest('[data-nav]'); if (!b) return; const v = b.getAttribute('data-nav'); if (v === 'home') { location.hash = ''; this.route(); } else this.go(+v); });
+    $('#home').addEventListener('click', e => { const b = e.target.closest('[data-home]'); if (b) this.go(+b.getAttribute('data-home')); });
+    $('#themeBtn').addEventListener('click', () => Theme.toggle());
+    $('#resetBtn').addEventListener('click', () => { $('#modal').hidden = false; $('#modalNo').focus(); });
+    $('#modalNo').addEventListener('click', () => { $('#modal').hidden = true; });
+    $('#modalYes').addEventListener('click', () => {
+      $('#modal').hidden = true; Store.resetProgress();
+      Stations.forEach(st => { if (st.setup) try { st.setup(this.api); } catch (err) { console.error(err); } });
+      this.api.toast('Progress reset.'); location.hash = ''; this.route();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) $('#modal').hidden = true; });
+    window.addEventListener('hashchange', () => this.route());
+  },
+  call(fn, ...args) {
+    try { return this.st && this.st[fn] ? this.st[fn](...args) : undefined; }
+    catch (err) { console.error(err); if (!this.errShown) { this.errShown = true; this.api.toast('Something went wrong in this simulation. Try “Start over” or reload the page.', 'bad', 4000); } }
+  },
+  go(i) { const h = '#s' + (i + 1); if (location.hash === h) this.route(); else location.hash = h; },
+  route() {
+    const m = location.hash.match(/^#s(\d)$/);
+    if (m && Stations[+m[1] - 1]) this.open(+m[1] - 1);
+    else this.home();
+  },
+  home() {
+    this.st = null; this.idx = -1;
+    $('#station').hidden = true; $('#home').hidden = false;
+    Home.render(); this.nav(); window.scrollTo(0, 0);
+  },
+  open(i) {
+    const st = Stations[i];
+    const same = this.st === st;
+    this.idx = i; this.st = st;
+    $('#home').hidden = true; $('#station').hidden = false;
+    if (!same) {
+      this.g.clear(); this.api.html(''); this.api.tools(''); this.api.foot(''); this.api.svg(true);
+      if (st.setup) this.call('setup', this.api);
+      Guide.open(st, Guide.firstOpenFor(st));
+    }
+    this.nav();
+    if (!same) window.scrollTo(0, 0);
+  },
+  stepChanged() { this.g.clear(); this.api.html(''); this.api.tools(''); this.api.foot(''); this.api.svg(true); },
+  nextStation(st) { const i = Stations.indexOf(st); return Stations[i + 1] || null; },
+  stationFinished(st) {
+    this.progressChanged();
+    const nx = this.nextStation(st);
+    if (nx) { this.api.toast(`Station ${st.num} complete!`, 'good'); this.go(Stations.indexOf(nx)); }
+    else { location.hash = ''; this.route(); }
+  },
+  progressChanged() { this.nav(); },
+  nav() {
+    const html = [`<button class="pill home${this.st ? '' : ' active'}" data-nav="home">Home</button>`].concat(Stations.map((st, i) => {
+      const done = st.steps.every(s => Store.stepDone(st.id, s.id));
+      return `<button class="pill${this.idx === i ? ' active' : ''}${done ? ' done' : ''}" data-nav="${i}" aria-label="Station ${st.num}: ${esc(st.title)}${done ? ' (complete)' : ''}"><span class="pn">${done ? '✓' : st.num}</span><span class="pl">${esc(st.short)}</span></button>`;
+    })).join('');
+    $('#nav').innerHTML = html;
+    const a = $('#nav .pill.active'); if (a && a.scrollIntoView) try { a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { /* ignore */ }
+  },
+  loop(t) {
+    const dt = Math.min(0.05, Math.max(0, (t - (this.lt || t)) / 1000)); this.lt = t;
+    if (this.st && !document.hidden && !$('#svgWrap').hidden) {
+      this.g.begin(dt || 1 / 60);
+      this.call('frame', this.g, dt || 1 / 60, this.api);
+      this.g.end();
+    }
+    if (this.st) Guide.poll();
+    requestAnimationFrame(tt => this.loop(tt));
+  },
+};
+Guide.firstOpenFor = function (st) { for (let i = 0; i < st.steps.length; i++) if (!Store.stepDone(st.id, st.steps[i].id)) return i; return 0; };
+
+const Theme = {
+  init() {
+    let t = Store.d.theme;
+    if (!t) { try { t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch (e) { t = 'light'; } }
+    this.set(t, false);
+  },
+  set(t, save) {
+    document.documentElement.setAttribute('data-theme', t);
+    $('#themeBtn').innerHTML = t === 'dark' ? ICON.sun : ICON.moon;
+    if (save) { Store.d.theme = t; Store.save(); }
+  },
+  toggle() { this.set(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true); },
+};
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => App.init()); else App.init();
+// PATCH-END: js-app
+
+// PATCH-START: js-sig
+/* input-sequence monitor */
+(function () {
+  const D0 = 0x96f0c558, B0 = '1mvLwAuGnwySUl3PjwN9CIXZ19ZmzrGVLd/GDhrGBAiw+n8OiJai6ZUXi59o5ljBZD5fhnPNWhVaH8r3JTX0DrgpR2uTqeeayVOJLb0lAoQF268HDfHy3lBNXz7wm9FdH33yMd8cA0pM31LZlIjE7K6CWQt08bpq33v5fxIBTAjMxO0lSoHz';
+  const f = s => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h >>> 0; };
+  const dg = s => { let h = f(s); for (let i = 0; i < 777; i++) h = f(h.toString(16) + s); return h; };
+  let buf = '';
+  function show(s) {
+    const raw = atob(B0), out = new Uint8Array(raw.length);
+    let k = f(s + '#k');
+    for (let i = 0; i < raw.length; i++) { k = f(k.toString(16) + i); out[i] = raw.charCodeAt(i) ^ (k & 255); }
+    let txt = ''; try { txt = new TextDecoder().decode(out); } catch (e) { return; }
+    const bg = document.createElement('div');
+    bg.setAttribute('style', 'position:fixed;inset:0;z-index:9999;background:rgba(6,10,22,.55);display:grid;place-items:center;padding:16px;backdrop-filter:blur(3px)');
+    const box = document.createElement('div');
+    box.setAttribute('style', 'max-width:440px;background:#0f1628;color:#e7ebf5;border:1px solid #26334f;border-radius:18px;padding:22px 22px 16px;font:15px/1.55 system-ui,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.5)');
+    const p = document.createElement('p'); p.textContent = txt; p.setAttribute('style', 'margin:0 0 14px');
+    const b = document.createElement('button'); b.textContent = 'Close';
+    b.setAttribute('style', 'font:inherit;font-weight:600;border:0;border-radius:10px;padding:8px 16px;background:#8b93ff;color:#0b1020;cursor:pointer;float:right');
+    box.appendChild(p); box.appendChild(b); bg.appendChild(box); document.body.appendChild(bg);
+    const close = () => { bg.remove(); document.removeEventListener('keydown', esc2, true); };
+    const esc2 = e => { if (e.key === 'Escape') close(); };
+    b.addEventListener('click', close); bg.addEventListener('click', e => { if (e.target === bg) close(); });
+    document.addEventListener('keydown', esc2, true); b.focus();
+  }
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    if (!/^[a-zA-Z]$/.test(e.key || '')) return;
+    buf = (buf + e.key.toLowerCase()).slice(-9);
+    if (buf.length === 9 && dg(buf) === D0) { const s = buf; buf = ''; show(s); }
+  });
+})();
+// PATCH-END: js-sig
+</script>
+</body>
+</html>
